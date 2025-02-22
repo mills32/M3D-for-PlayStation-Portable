@@ -22,7 +22,7 @@ Thanks again to Andresmargar for creating this.
 ## FUNCTIONS  
 
 I don't want to create a complex doc because functions are not complex at all, that was the point of doing this.  
-So this is a brief description of everything M3D does. For more details, looms at samples and M3D.h file.
+So this is a brief description of everything M3D does. For more details, read the samples and M3D.h file.
 
 **<ins>LOADING FUNCTIONS:</ins>** for images/fonts, maps, music, models.  
 **<ins>VFPU MATH FUNCTIONS:</ins>** like sin, cos etc.  
