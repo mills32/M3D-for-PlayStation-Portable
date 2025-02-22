@@ -17,9 +17,7 @@ This M3D warpper does not implemet any wifi/net/load/save functions, you can use
 Thanks again to Andresmargar for creating this.  
 
 **<ins>OPENTRI:</ins>** I just used the particle system from this lib, because I could not make it work from the library included in pspsdk.
-  
-I added a lot of stuff to AMGLib and fixed a lot of bugs (I think)
-OSLib is untouched.  
+
 
 ## FUNCTIONS  
 
