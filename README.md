@@ -50,7 +50,7 @@ Supported models are:
   - obj/mtl: Should have no problems with these.
   - m3b: Binary PSP models, in PSP's internal format. (Blender 2.7 export plugin included).  
 
-**<ins>SKINNED MODELS:</ins>** These models use BONES to show animations, skinned models incredibly complex, so I created a very simple format
+**<ins>SKINNED MODELS:</ins>** These models use BONES to show animations, skinned models are incredibly complex, so I created a very simple format
 (Blender 2.7 export plugin included) which is processed by the PSP when loading.  
 It is probably very easy to port the plugins to newer versions of Blender, but I just didn't have the motivation to port them.  
 Supported models are:
