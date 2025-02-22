@@ -60,7 +60,7 @@ AMG code is a bit messy, but it is not very complex, I hope someone can find it 
 **<ins>IMAGES:</ins>** just PNG files, 32 bit RGBA, 24 bit RGB, indexed 256/16 colors.  
 **<ins>FONTS:</ins>** just PNG files, 32 bit RGBA, 24 bit RGB, indexed 256/16 colors. Image must be 16x16 characters, arranged as defined in basic ascii.
 It will support latin characters, or any other character supported when saving source files as "OEM US FORMAT / OEM US / CP 437 / ANSI".  
-**<ins>MAPS:</ins>** create them using a PNG image for the tiles and TILED to create the map http://www.mapeditor.org/
+**<ins>MAPS:</ins>** create them using a PNG image for the tiles, and TILED to create the map http://www.mapeditor.org/
 maps must be in CSV format.  
 **<ins>MUSIC & SOUND:</ins>** OSL handles this, it can load wav, MP3, BGM, and tracker formats (MOD,XM,IT).  
 Be careful when loading tracker modules, they can use a lot of CPU/RAM.  
