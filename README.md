@@ -15,6 +15,8 @@ This M3D warpper does not implemet any wifi/net/load/save functions, you can use
   
 **<ins>AMGLib:</ins>** This is a heavily modified version of the original, I added a lot of functions here.  
 Thanks again to Andresmargar for creating this.  
+
+**<ins>OPENTRI:</ins>** I just used the particle system from this lib, because I could not make it work from the library included in pspsdk.
   
 I added a lot of stuff to AMGLib and fixed a lot of bugs (I think)
 OSLib is untouched.  
@@ -31,6 +33,10 @@ So this is a brief description os everything M3D does. For more details, looms a
 **<ins>MULTIMEDIA:</ins>** Play music and videos.  
 **<ins>3D SCENES:</ins>** Cameras, lights, model rendering, render to texture.   
 **<ins>3D ANIMATION:</ins>** Skinned and morphing models.  
+**<ins>3D SHADOWS:</ins>** Volumetric stencil shadows, and projection shadows.   
+**<ins>3D PARTICLES:</ins>** A simplified version of OPENTRI library particle system, with several parameters to set.  
+**<ins>FAKE BUMP MAPPING:</ins>** A simulation of modern shaders usinf paletted textures, only works well on mostly flat surfaces.
+**<ins>3D NURBS:</ins>** PSP can generate a surface from several points you can animate, I added this because I think it looks ok for simple water simulations.   
 
   
 
