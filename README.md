@@ -9,8 +9,7 @@ Thanks to the creators of AMGLib (Andresmargar), OSLib, and bullet.
 ![screenshot](IMAGES/nurbs_water.png)         ![screenshot](IMAGES/mirror.png)
 
   
-I just wanted to create an engine easy to use, and powerful enough to create things  
-you can call "games" for PSP.  
+I just wanted to create an engine easy to use, and powerful enough to create things you can call "games" for PSP.  
   
 **<ins>OSLIB:</ins>** Unchanged as it was in late 2024, I include a copy here, in M3D_LIBS folder.  
 If you want to access all OSL functions, just "#include <oslib/oslib.h>".  
