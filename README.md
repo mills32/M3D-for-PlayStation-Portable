@@ -25,7 +25,7 @@ OSLib is untouched.
 
 ## INSTALL & TEST
   
-Copy libM3D.a to pspsdl libs folder, and M3D.h to include folder.
+Copy libM3D.a to pspsdk libs folder, and M3D.h to include folder.
 In windows you can use "install.bat" inside M3D_LIBS folder (edit the file and configure
 your PSPSDKDIR first).  
    
@@ -42,20 +42,22 @@ any linux distrubution. If you use mac, I can't help you.
 maps must be in CSV format.  
 **<ins>MUSIC & SOUND:</ins>** OSL handles this, it can load wav, MP3, BGM, and tracker formats (MOD,XM,IT).  
 Be careful when loading tracker modules, they can use a lot of CPU/RAM.  
+**<ins>STATIC MODELS:</ins>** I use Blender 2.79 for 3D model creation, because 2.8+ works very slow on my PC.   
+Blender 2.7 will run very well on any PC.
+Supported models are: 
+  - ply: The fist version, as it is exported by Blender 2.7.
+  - obj/mtl: Should have no problems with these.
+  - m3b: Binary PSP models, in PSP's internal format. (Blender 2.7 export plugin included).
+**<ins>SKINNED BONE MODELS:</ins>**
+These models use BONES to show animations, skinned models incredibly complex, so  I created a very simple format
+(Blender 2.7 export plugin included) which is processed by the PSP when loading.
 
-You need Blender 2.79 for 3D model creation, and animations. Why that version? 
-- Blender 2.8+ works very slow on my PC, (and it is not old or slow by any means)
-- Blender 2.7 only requires 32-bit CPU, SSE2 support, OpenGL 2.1 and 512 MB of RAM,
-So it works on 100% of computers (2025), from toasters to modern ones, and I hope
-it will probably work on computers up to 2040 if nothing weird happens to windows
-or linux OS.
-
-To create animated models I included an export plugins for Blender 2.79 and sample files.
+It is probably very easy to port the plugins to newer versions of Blender, but I just didn't have the motivation to port them.
 
 
-OPTIMIZATIONS
+## OPTIMIZE YOUR ASSETS
 
 1- Do not use lighting unless you really need it
 2- Use small (< 128x128) and indexed textures (16/256 colours)
 3- Use models as low poly as you can.
-4- Avoid using nested "for" loops bigger than 128x128, (PSP CPU just dies).
+4- Avoid using nested "for" loops bigger than 128x128.
