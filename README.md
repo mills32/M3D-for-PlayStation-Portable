@@ -1,5 +1,5 @@
-M3DLIB for PSP
---------------
+# M3DLIB for PSP
+# --------------
 
 This is a "GAME ENGINE" for the PlayStation Portable, it is a wrapper around several libraries,
 which are combined in one, the relevant functions are exposed as "M3D" by including M3D.h.
@@ -20,13 +20,13 @@ Thanks again to Andresmargar for creating this.
 I added a lot of stuff to AMGLib and fixed a lot of bugs (I think)
 OSLib is untouched.
 
-FUNCTIONS
----------
+## FUNCTIONS
+## ---------
 
 
 
-INSTALL & TEST
---------------
+## INSTALL & TEST
+## --------------
 
 Copy libM3D.a to pspsdl libs folder, and M3D.h to include folder.
 In windows you can use "install.bat" inside M3D_LIBS folder (edit the file and configure
@@ -38,13 +38,13 @@ for linux. If you use windows, most computers can run WSL1 from windows  (WSL 1 
 If your PC is very old and can't run WSL just install linux, or use a  virtual machine with 
 any linux distrubution. If you use mac, I can't help you.
 
-CREATE ASSETS
---------------
+## CREATE ASSETS
+## --------------
 
-[b]IMAGES[b]: just PNG files, 32 bit RGBA, 24 bit RGB, indexed 256/16 colors.
-[b]MAPS[b]: create them using a PNG image for the tiles and TILED to create the map http://www.mapeditor.org/
+**IMAGES:** just PNG files, 32 bit RGBA, 24 bit RGB, indexed 256/16 colors.
+**MAPS:** create them using a PNG image for the tiles and TILED to create the map http://www.mapeditor.org/
 maps must be in CSV format
-[b]MUSIC & SOUND[b]: OSL handles this, it can load wav, MP3, BGM, and tracker formats (MOD,XM,IT). 
+**MUSIC & SOUND:** OSL handles this, it can load wav, MP3, BGM, and tracker formats (MOD,XM,IT). 
 Be careful when loading tracker modules, they can use a lot of CPU/RAM.
 
 You need Blender 2.79 for 3D model creation, and animations. Why that version? 
