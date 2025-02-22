@@ -7,13 +7,13 @@ Thanks to the creators of AMGLib (Andresmargar), OSLib, and bullet.
 I just wanted to create an engine easy to use, and powerful enough to create things  
 you can call "games" for PSP.  
   
-OSLIB: is unchanged as it was in late 2024, I include a copy here, in M3D_LIBS folder.  
+**<ins>OSLIB:</ins>** is unchanged as it was in late 2024, I include a copy here, in M3D_LIBS folder.  
 If you want to access all OSL functions, just "#include <oslib/oslib.h>".  
 This M3D warpper does not implemet any wifi/net/load/save functions, you can use OSL ones.  
   
-BULLET: version 2.82-r2704, I also include it in M3D_LIBS folder.  
+**<ins>BULLET:</ins>** version 2.82-r2704, I also include it in M3D_LIBS folder.  
   
-AMGLib: This is a heavily modified version of the original, I added a lot of functions here.  
+**<ins>AMGLib:</ins>** This is a heavily modified version of the original, I added a lot of functions here.  
 Thanks again to Andresmargar for creating this.  
   
 I added a lot of stuff to AMGLib and fixed a lot of bugs (I think)
