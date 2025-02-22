@@ -55,8 +55,15 @@ Supported models are:
 It is probably very easy to port the plugins to newer versions of Blender, but I just didn't have the motivation to port them.  
 Supported models are:
   - m3a: custom format (Blender 2.7 export plugin included).
-  
 
+There are limitations when using these models:
+  - Every vertex can have **only one bone** assigned.  
+  - A triangle **can't use more that 2 bones**.  
+  - Create the armature by cloning bones (not extruding!!) and placing them at the rotation points of your model.  
+  - Do not forget to parent the bones before asigning the armature to the object, if not, bone will rotate around 0,0,0.
+  - While **in EDIT MODE, do NOT rotate the bones** in the X or Y axis, just place them around and parent the bones as you like.
+  
+  
 ## OPTIMIZE
   
 1- Do not use lighting unless you really need it.  
