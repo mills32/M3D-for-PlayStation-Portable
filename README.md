@@ -58,10 +58,13 @@ Supported models are:
 
 There are limitations when using these models:
   - Every vertex can have **only one bone** assigned.  
-  - A triangle **can't use more that 2 bones**.  
+  - A triangle can only contain vertices fron **2 bones max**.
   - Create the armature by cloning bones (not extruding!!) and placing them at the rotation points of your model.  
-  - Do not forget to parent the bones before asigning the armature to the object, if not, bone will rotate around 0,0,0.
+  - Do not forget to parent the bones before asigning the armature to the object, if not, bone will rotate around 0,0,0.  
   - While **in EDIT MODE, do NOT rotate the bones** in the X or Y axis, just place them around and parent the bones as you like.
+  - Only the first bone can be translated, it will translate the whole model. The rest of the bones **only support rotation**, (not translation or scale).
+  - Do not forget to apply location, rotation and scale to the armature object and the models.  
+  - Do not rotate or translate bone.0 at frame 0, PSP will use this as the default position.  
   
   
 ## OPTIMIZE
