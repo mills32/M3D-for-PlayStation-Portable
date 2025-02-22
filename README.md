@@ -19,7 +19,7 @@ Thanks again to Andresmargar for creating this.
 I added a lot of stuff to AMGLib and fixed a lot of bugs (I think)
 OSLib is untouched.
 
-## FUNCTIONS
+## FUNCTIONS  
 
 
 
@@ -37,11 +37,11 @@ any linux distrubution. If you use mac, I can't help you.
 
 ## CREATE ASSETS
 
-**IMAGES:** just PNG files, 32 bit RGBA, 24 bit RGB, indexed 256/16 colors.
+**<ins>IMAGES:</ins>** just PNG files, 32 bit RGBA, 24 bit RGB, indexed 256/16 colors.  
 **MAPS:** create them using a PNG image for the tiles and TILED to create the map http://www.mapeditor.org/
-maps must be in CSV format
-**MUSIC & SOUND:** OSL handles this, it can load wav, MP3, BGM, and tracker formats (MOD,XM,IT). 
-Be careful when loading tracker modules, they can use a lot of CPU/RAM.
+maps must be in CSV format.  
+**MUSIC & SOUND:** OSL handles this, it can load wav, MP3, BGM, and tracker formats (MOD,XM,IT).  
+Be careful when loading tracker modules, they can use a lot of CPU/RAM.  
 
 You need Blender 2.79 for 3D model creation, and animations. Why that version? 
 - Blender 2.8+ works very slow on my PC, (and it is not old or slow by any means)
