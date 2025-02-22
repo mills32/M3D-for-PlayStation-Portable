@@ -51,7 +51,11 @@ or run compile_WSL.bat in windows. You need the last pspsdk (2025) which was onl
 for linux. If you use windows, most computers can run WSL1 from windows  (WSL 1 is fast). 
 If your PC is very old and can't run WSL just install linux, or use a  virtual machine with 
 any linux distrubution. If you use mac, I can't help you.  
-   
+
+For more advance modifications, just modify and compile AMG, OSL and BULLET.  
+  
+AMG code is a bit messy, but it is not very complex, I hope someone can find it useful, at least to learn how to use the skinned / morphing models.  
+  
    
 ## CREATE ASSETS
 
