@@ -1,46 +1,46 @@
-# M3DLIB for PSP
-
+# M3DLIB for PSP  
+  
 This is a "GAME ENGINE" for the PlayStation Portable, it is a wrapper around several libraries,
-which are combined in one, the relevant functions are exposed as "M3D" by including M3D.h.
-Thanks to the creators of AMGLib (Andresmargar), OSLib, and bullet.
-
-I just wanted to create an engine easy to use, and powerful enough to create things
-you can call "games" for PSP.
-
-OSLIB: is unchanged as it was in late 2024, I include a copy here, in M3D_LIBS folder.
-If you want to access all OSL functions, just "#include <oslib/oslib.h>"
-This M3D warpper does not implemet any wifi/net/load/save functions, you can use OSL ones.
-
-BULLET: version 2.82-r2704, I also include it in M3D_LIBS folder.
-
-AMGLib: This is a heavily modified version of the original, I added a lot of functions here.
-Thanks again to Andresmargar for creating this.
-
+which are combined in one, the relevant functions are exposed as "M3D" by including M3D.h.  
+Thanks to the creators of AMGLib (Andresmargar), OSLib, and bullet.  
+  
+I just wanted to create an engine easy to use, and powerful enough to create things  
+you can call "games" for PSP.  
+  
+OSLIB: is unchanged as it was in late 2024, I include a copy here, in M3D_LIBS folder.  
+If you want to access all OSL functions, just "#include <oslib/oslib.h>".  
+This M3D warpper does not implemet any wifi/net/load/save functions, you can use OSL ones.  
+  
+BULLET: version 2.82-r2704, I also include it in M3D_LIBS folder.  
+  
+AMGLib: This is a heavily modified version of the original, I added a lot of functions here.  
+Thanks again to Andresmargar for creating this.  
+  
 I added a lot of stuff to AMGLib and fixed a lot of bugs (I think)
-OSLib is untouched.
+OSLib is untouched.  
 
 ## FUNCTIONS  
-
-
+  
+  
 
 ## INSTALL & TEST
-
+  
 Copy libM3D.a to pspsdl libs folder, and M3D.h to include folder.
 In windows you can use "install.bat" inside M3D_LIBS folder (edit the file and configure
-your PSPSDKDIR first).
-
+your PSPSDKDIR first).  
+   
 To compile the samples or create yoour programs, run make inside any sample folder, 
 or run compile_WSL.bat in windows. You need the last pspsdk (2025) which was only releassed 
 for linux. If you use windows, most computers can run WSL1 from windows  (WSL 1 is fast). 
 If your PC is very old and can't run WSL just install linux, or use a  virtual machine with 
-any linux distrubution. If you use mac, I can't help you.
-
+any linux distrubution. If you use mac, I can't help you.  
+  
 ## CREATE ASSETS
 
 **<ins>IMAGES:</ins>** just PNG files, 32 bit RGBA, 24 bit RGB, indexed 256/16 colors.  
-**MAPS:** create them using a PNG image for the tiles and TILED to create the map http://www.mapeditor.org/
+**<ins>MAPS:</ins>** create them using a PNG image for the tiles and TILED to create the map http://www.mapeditor.org/
 maps must be in CSV format.  
-**MUSIC & SOUND:** OSL handles this, it can load wav, MP3, BGM, and tracker formats (MOD,XM,IT).  
+**<ins>MUSIC & SOUND:</ins>** OSL handles this, it can load wav, MP3, BGM, and tracker formats (MOD,XM,IT).  
 Be careful when loading tracker modules, they can use a lot of CPU/RAM.  
 
 You need Blender 2.79 for 3D model creation, and animations. Why that version? 
