@@ -106,6 +106,7 @@ All models are exported with PSP internal coordinate system (in Blender 2.7: -Z 
 ## BUGS
   - Sometimes you can load images with the wrong format and it will crash the image loader (OSLIB)
   - Be sure there are no custom mipmap images (image_mip1 or image_mip2) if you are not going to use them, again the texture loader can automatically load them with the wrong format, and crash the system.
+  - Doing things like "M3D_Model *Models[32];" can cause memory leaks if the array is too big.  
   
   
    
