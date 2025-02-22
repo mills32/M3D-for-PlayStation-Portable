@@ -25,8 +25,12 @@ I don't want to create a complex doc because functions are not complex at all, t
 So this is a brief description os everything M3D does. For more details, looms at samples and M3D.h file.
 
 **<ins>LOADING FUNCTIONS:</ins>** for images/fonts, maps, music, models.  
-**<ins>VFPU MATH FUNCTIONS:</ins>** like sin, cos etc.
-**<ins>2D FUNCTIONS:</ins>** Print
+**<ins>VFPU MATH FUNCTIONS:</ins>** like sin, cos etc.  
+**<ins>2D FUNCTIONS:</ins>** Print, draw (lines, rectangles, sprites, maps, and some retro effects like plasma and copper bars).  
+**<ins>2D ANIMATIONS:</ins>** Sprite animations, sprite rotation, palette animation, map animation (replace/animate tiles).  
+**<ins>MULTIMEDIA:</ins>** Play music and videos.  
+**<ins>3D SCENES:</ins>** Cameras, lights, model rendering, render to texture.   
+**<ins>3D ANIMATION:</ins>** Skinned and morphing models.  
 
   
 
@@ -52,6 +56,7 @@ It will support latin characters, or any other character supported when saving s
 maps must be in CSV format.  
 **<ins>MUSIC & SOUND:</ins>** OSL handles this, it can load wav, MP3, BGM, and tracker formats (MOD,XM,IT).  
 Be careful when loading tracker modules, they can use a lot of CPU/RAM.  
+**<ins>VIDEOS:</ins>** Supports MJPEG and H264 videos (script to convert them in UTILS folder) up to 480x272 60 FPS. Some 60 FPS videos will crash.   
 **<ins>STATIC MODELS:</ins>** I use Blender 2.79 for 3D model creation, because 2.8+ works very slow on my PC.  
 Blender 2.7 will run very well on any PC.  
 Supported models are:
@@ -74,8 +79,13 @@ There are limitations when using these models:
   - Only the first bone can be translated, it will translate the whole model. The rest of the bones **only support rotation**, (not translation or scale).
   - Do not forget to apply location, rotation and scale to the armature object and the models.  
   - Do not rotate or translate bone.0 at frame 0, PSP will use this as the default position.  
-  
-  
+    
+**<ins>MORPHING MODELS:</ins>** These models are created by storing several shapes, then the PSP can render a transition from one to the other.
+Supported models are:
+  - m3m: a bunch of binary PSP models (Blender 2.7 export plugin included).
+Only 8 frames are supported.
+
+   
 ## OPTIMIZE
   
 1- Do not use lighting unless you really need it.  
