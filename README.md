@@ -24,7 +24,7 @@ OSLib is untouched.
 I don't want to create a complex doc because functions are not complex at all, that was the point of doing this.  
 So this is a brief description os everything M3D does. For more details, looms at samples and M3D.h file.
 
-**<ins>LOADING FUNCTIONS:</ins>** for images/fonts, maps, music, models.
+**<ins>LOADING FUNCTIONS:</ins>** for images/fonts, maps, music, models.  
 **<ins>VFPU MATH FUNCTIONS:</ins>** like sin, cos etc.
 **<ins>2D FUNCTIONS:</ins>** Print
 
@@ -46,7 +46,7 @@ any linux distrubution. If you use mac, I can't help you.
 ## CREATE ASSETS
 
 **<ins>IMAGES:</ins>** just PNG files, 32 bit RGBA, 24 bit RGB, indexed 256/16 colors.  
-**<ins>FONTS:</ins>** just PNG files, 32 bit RGBA, 24 bit RGB, indexed 256/16 colors, 16x16 characters, arranged as defined in basic ascii.
+**<ins>FONTS:</ins>** just PNG files, 32 bit RGBA, 24 bit RGB, indexed 256/16 colors. Image must be 16x16 characters, arranged as defined in basic ascii.
 It will support latin characters, or any other character supported when saving source files as "OEM US FORMAT / OEM US / CP 437 / ANSI".  
 **<ins>MAPS:</ins>** create them using a PNG image for the tiles and TILED to create the map http://www.mapeditor.org/
 maps must be in CSV format.  
