@@ -45,10 +45,11 @@ maps must be in CSV format.
 Be careful when loading tracker modules, they can use a lot of CPU/RAM.  
 **<ins>STATIC MODELS:</ins>** I use Blender 2.79 for 3D model creation, because 2.8+ works very slow on my PC.  
 Blender 2.7 will run very well on any PC.
-Supported models are: 
+Supported models are:
   - ply: The fist version, as it is exported by Blender 2.7.
   - obj/mtl: Should have no problems with these.
   - m3b: Binary PSP models, in PSP's internal format. (Blender 2.7 export plugin included).  
+
 **<ins>SKINNED BONE MODELS:</ins>** These models use BONES to show animations, skinned models incredibly complex, so I created a very simple format
 (Blender 2.7 export plugin included) which is processed by the PSP when loading.  
 It is probably very easy to port the plugins to newer versions of Blender, but I just didn't have the motivation to port them.
