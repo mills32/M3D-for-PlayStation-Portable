@@ -59,8 +59,8 @@ Supported models are:
 
 ## OPTIMIZE
   
-1- Do not use lighting unless you really need it
-2- Use small (< 128x128) and indexed textures (16/256 colours)
-3- Use models as low poly as you can.
-4- Avoid using nested "for" loops bigger than 128x128.
-5- Use color mode 5650 (or 5551 if you want the shadows to work) with dither enabled, it is much faster that 8888 mode and it will look good. 
+1- Do not use lighting unless you really need it.  
+2- Use small (< 128x128) and indexed textures (16/256 colours).  
+3- Use models as low poly as you can.  
+4- Avoid using nested "for" loops bigger than 128x128.  
+5- Use color mode 5650 (or 5551 if you want the shadows to work) with dither enabled, it is much faster that 8888 mode and it will look good.  
