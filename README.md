@@ -6,7 +6,7 @@ which are combined in one, the relevant functions are exposed as "M3D" by includ
 Thanks to the creators of AMGLib (Andresmargar), OSLib, and bullet.  
 
   
-![screenshot](IMAGES/nurbs_water.png)         ![screenshot](IMAGES/3d.png)
+![screenshot](IMAGES/nurbs_water.png)         ![screenshot](IMAGES/mirror.png)
 
   
 I just wanted to create an engine easy to use, and powerful enough to create things  
