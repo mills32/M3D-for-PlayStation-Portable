@@ -35,7 +35,7 @@ So this is a brief description os everything M3D does. For more details, looms a
 **<ins>3D ANIMATION:</ins>** Skinned and morphing models.  
 **<ins>3D SHADOWS:</ins>** Volumetric stencil shadows, and projection shadows.   
 **<ins>3D PARTICLES:</ins>** A simplified version of OPENTRI library particle system, with several parameters to set.  
-**<ins>FAKE BUMP MAPPING:</ins>** A simulation of modern shaders usinf paletted textures, only works well on mostly flat surfaces.
+**<ins>FAKE BUMP MAPPING:</ins>** A simulation of modern shaders usinf paletted textures, only works well on mostly flat surfaces.  
 **<ins>3D NURBS:</ins>** PSP can generate a surface from several points you can animate, I added this because I think it looks ok for simple water simulations.   
 
   
