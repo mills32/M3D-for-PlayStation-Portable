@@ -1,5 +1,4 @@
 # M3DLIB for PSP
-# --------------
 
 This is a "GAME ENGINE" for the PlayStation Portable, it is a wrapper around several libraries,
 which are combined in one, the relevant functions are exposed as "M3D" by including M3D.h.
@@ -21,12 +20,10 @@ I added a lot of stuff to AMGLib and fixed a lot of bugs (I think)
 OSLib is untouched.
 
 ## FUNCTIONS
-## ---------
 
 
 
 ## INSTALL & TEST
-## --------------
 
 Copy libM3D.a to pspsdl libs folder, and M3D.h to include folder.
 In windows you can use "install.bat" inside M3D_LIBS folder (edit the file and configure
@@ -39,7 +36,6 @@ If your PC is very old and can't run WSL just install linux, or use a  virtual m
 any linux distrubution. If you use mac, I can't help you.
 
 ## CREATE ASSETS
-## --------------
 
 **IMAGES:** just PNG files, 32 bit RGBA, 24 bit RGB, indexed 256/16 colors.
 **MAPS:** create them using a PNG image for the tiles and TILED to create the map http://www.mapeditor.org/
