@@ -120,7 +120,7 @@ Supported models are:
   - m3m: a bunch of binary PSP models (Blender 2.7 export plugin included).
 Only 8 frames are supported.
 
-For more details, I included Blender 2.7 files with most of the models, so people can see how textures, triangles and bones are arranged.
+For more details, I included Blender 2.7 files with most of the models, so people can see how textures, triangles and bones are arranged.  
 All models are exported with PSP internal coordinate system (in Blender 2.7: -Z FORWARD; Y UP):
   - Z: -Z = FORWARD; +Z = BACKWARD   
   - Y: -Y = DOWN; +Y = UP  
