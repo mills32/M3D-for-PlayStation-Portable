@@ -1,6 +1,7 @@
 # M3DLIB for PSP  
-<div style="text-align: center;">
-<img width="60%" src="IMAGES/M3D.png">
+
+<div>
+  <img align=center src="IMAGES/M3D.png">
 </div>
 
 This is a "GAME ENGINE" for the PlayStation Portable, it is a wrapper around several libraries,
