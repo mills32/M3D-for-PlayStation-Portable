@@ -33,7 +33,7 @@ So this is a brief description of everything M3D does. For more details, **read 
 **<ins>3D SCENES:</ins>** Cameras, lights, model rendering, multitextures, environment mapping textures, render to texture.   
 **<ins>3D ANIMATION:</ins>** Skinned and morphing models.  
 **<ins>3D SHADOWS:</ins>** Volumetric stencil shadows, and projection shadows.  
-**<ins>STENCIL MIRRORS:</ins>** A simple mirror/glossy surface simulation. 
+**<ins>STENCIL MIRRORS:</ins>** A simple mirror/glossy surface simulation.  
 **<ins>3D PARTICLES:</ins>** A simplified version of OPENTRI library particle system, with several parameters to set.  
 **<ins>3D BULLET PHYSICS:</ins>** Several shapes (sphere, cone, box, triangle mesh), gravity, set forces, collision detection, ray tracing collision, constraints (ball and hinge), simple vehicle (Car).  
 **<ins>FAKE BUMP MAPPING:</ins>** A simulation of modern shaders usinf paletted textures, only works well on mostly flat surfaces.  
