@@ -1,9 +1,6 @@
 # M3DLIB for PSP 
   
-<div align="center">
-  ![screenshot](IMAGES/M3D.png)
-  <img src=""IMAGES/M3D.png">
-</div>
+![screenshot](IMAGES/M3D.png)
   
 This is a "GAME ENGINE" for the PlayStation Portable, it is a wrapper around several libraries,
 which are combined in one, the relevant functions are exposed as "M3D" by including M3D.h.  
@@ -45,7 +42,6 @@ So this is a brief description of everything M3D does. For more details, read th
 
 ## SOME TESTS
 
-<p align="center">
 MULTITEXTURE SAMPLE:  
 ![screenshot](IMAGES/multitexture.gif)
 
@@ -61,7 +57,7 @@ PHYSICS TEST:
 RENDER TO TEXTURE (CRT models from N64's tiny3D engine):  
 ![screenshot](IMAGES/rendertexture.png)  
 
-</p>
+
 
 ## INSTALL & TEST
   
