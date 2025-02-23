@@ -1,48 +1,4 @@
 
-/*
-M3DLIB for PSP
---------------
-
-This uses AMGLib by ... OSLib by ... and Bullet ...
-I added a lot of stuff to AMGLib and fixed a lot of bugs (I think)
-OSLib is untouched.
-
-
-I just wanted to create an engine easy to use, and powerful enough to create things
-you can call "games" for PSP. Many things were already there in the first AMGLib
-but I added so many features I called this "M3D" and created another layer to hide
-most AMG and OSLib functions and structures. 
-
-You still can access all AMG and OSLib functions by including these:
-#include <oslib/oslib.h>
-#include <AMG/AMGLib.h>
-
-
-To use this you need the last pspsdk (2025) which was only releassed for linux.
-If you use windows, most computers can run WSL from windows (WSL 1 is OK).
-If your PC is very old and can't run WSL just install linux, or use a virtual 
-machine with any linux distrubution.
-If you use mac, I can't help you.
-
-You need Blender 2.79 for 3D model creation, and animations. Why that version? 
-- Blender 2.8+ works very slow on my PC, (and it is not old or slow by any means)
-- Blender 2.7 only requires 32-bit CPU, SSE2 support, OpenGL 2.1 and 512 MB of RAM,
-So it works on 100% of computers (2025), from toasters to modern ones, and I hope
-it will probably work on computers up to 2040 if nothing weird happens to windows
-or linux OS.
-
-To create animated models I included an export plugins for Blender 2.79 and sample files.
-
-
-OPTIMIZATIONS
-
-1- Do not use lighting unless you really need it
-2- Use small (< 128x128) and indexed textures (16/256 colours)
-3- Use models as low poly as you can.
-4- Avoid using nested "for" loops bigger than 128x128, (PSP CPU just dies).
-
-*/
-
 #include <M3D.h>
 
 PSP_MODULE_INFO("Hello World", 0, 1, 0);
