@@ -148,11 +148,10 @@ void M3D_Quit();
 u16 M3D_GetFreeRAM();
 u16 M3D_GetTotalVRAM();
 u16 M3D_GetUsedVRAM();
-//Use this at the start (or end) of any loop or after any update you do on screen
-void M3D_updateScreen(u32 color);
+void M3D_updateScreen(u32 color);//Use this at the start (or end) of any loop or after any update you do on screen
 int M3D_GetCpuSpeed();
 char *M3D_GetScreenMode();
-void M3D_DITHER(int mode);
+void M3D_DITHER(int mode);//PSX style dither, it looks great with 5551 and 5650 modes
 void M3D_2DMode(int mode);
 void M3D_FogEnable(float near, float far, u32 color);
 void M3D_FogDisable();
@@ -165,9 +164,12 @@ void M3D_Print(M3D_Texture *tex, int x, int y, u32 color, int wave_amp, int wave
 }
 
 
-/*TEXTURE
+/*TEXTURES---------------------------
+	M3D_Texture: an image/texture
 	psm: color mode for textures (COLOR_4444/5551/5650/8888)
 	load: were to store the texture (M3D_IN_RAM/VRAM). It will always try to load to VRAM
+	mapping: normal (M3D_TEXTURE_COORDS) reflection (M3D_ENVIRONMENT_MAP)	
+	filter: 0 pixelated, 1 smooth
 */
 
 M3D_Texture *M3D_GetFont(int n);
@@ -179,16 +181,22 @@ M3D_Texture *M3D_TextureCreate(u16 width, u16 height, u32 psm, u8 load);
 M3D_Texture *M3D_RenderTextureCreate(u16 width, u16 height);
 void M3D_TextureSetFilter(M3D_Texture *t, int filter);
 void M3D_TextureSetMapping(M3D_Texture *t, u32 mapping, u8 l0, u8 l1);
-void M3D_DrawHugeImage(M3D_Texture *image, s16 x, s16 y);
+void M3D_DrawHugeImage(M3D_Texture *image, s16 x, s16 y);//Draw 640x480 or 720x480 image
 void M3D_DrawSprite(M3D_Texture *tex, int x = 0, int y = 0, int tile_size_x = 0, int tile_size_y = 0, u8 *anim = NULL, float speed = 0);
 void M3D_DrawSpriteScaleRot(M3D_Texture *tex, int x = 0, int y = 0, float rot = 0, float scale = 1, int tile_size_x = 0, int tile_size_y = 0, u8 *anim = NULL, float speed = 0);
-void M3D_DrawImage(M3D_Texture *t, int x, int y);
+void M3D_DrawImage(M3D_Texture *t, int x, int y);//Draw image very fast
 void M3D_TextureUnload(M3D_Texture *tex);
 void M3D_Texture3D_Animate(M3D_Texture *tex, u8 xframes, u8 yframes, u8 *anim, float speed);
-void M3D_RenderToTextureEnable(M3D_Texture *t);
+void M3D_RenderToTextureEnable(M3D_Texture *t);//Render to a custom texture, you can then use it on models.
 void M3D_RenderToTextureDisable(void);
 
-//MAP(OSL)
+/*MAPS--------------------------------
+	M3D_MAP: a MAP (OSL_MAP)
+	slot: tile animation slot (there are 16 slots)
+	tile: destination tile number in tilemap
+	start_tile: source tile number in tilemap
+	anim_size: number of tiles to use in aminmation
+*/
 M3D_MAP *M3D_LoadMapTMX(const char *path, u8 mode, u8 load, u32 psm);
 void M3D_DrawMap(M3D_MAP *map);
 void M3D_MapSetScroll(M3D_MAP *map, int x, int y);
