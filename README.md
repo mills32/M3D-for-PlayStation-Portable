@@ -41,11 +41,11 @@ So this is a brief description of everything M3D does. For more details, read th
 **<ins>TV OUT:</ins>** You can enable TV OUT mode (on PSP 2000+), it will output a 720x480 image. This will be slow unless you use 4444, 5551 or 5650 modes.  
 
 ## SOME TESTS
-
-MULTITEXTURE SAMPLE: 
+  
+MULTITEXTURE SAMPLE:  
 ![screenshot](IMAGES/multitexture.gif) 
   
-NURBS SURFACE: 
+NURBS SURFACE:  
 ![screenshot](IMAGES/nurbs.png)
   
 PHYSICS TEST:  
