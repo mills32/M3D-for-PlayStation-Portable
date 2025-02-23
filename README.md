@@ -42,11 +42,8 @@ So this is a brief description of everything M3D does. For more details, read th
 
 ## SOME TESTS
 
-MULTITEXTURE SAMPLE:  
-![screenshot](IMAGES/multitexture.gif)
-
-NURBS SURFACE:  
-![screenshot](IMAGES/nurbs.png)
+MULTITEXTURE SAMPLE:  NURBS SURFACE: 
+![screenshot](IMAGES/multitexture.gif) ![screenshot](IMAGES/nurbs.png)
 
 PHYSICS TEST:  
 ![screenshot](IMAGES/physics.png)
