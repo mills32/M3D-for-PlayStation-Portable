@@ -90,13 +90,13 @@ maps must be in CSV format.
 **<ins>MUSIC & SOUND:</ins>** OSL handles this, it can load wav, MP3, BGM, and tracker formats (MOD,XM,IT).Be careful when loading tracker modules, they can use a lot of CPU/RAM.  
 **<ins>VIDEOS:</ins>** Supports MJPEG and H264 videos (script to convert them in UTILS folder) up to 480x272 60 FPS. Some 60 FPS videos will crash.  
 **<ins>3D IMAGE MIPMAPS:</ins>** If you enable mipmapping, you can use custom mipmaps by giving your main texture the name "image.png", the first mipmap "image_mip1.png" and the second mipmap "image_mip2.png". These three images must use the same color format, else PSP will crash.  
-**<ins>STATIC MODELS:</ins>** I use Blender 2.79 for 3D model creation, because 2.8+ works very slow on my PC. Blender 2.7 will run very well on any PC.  
+**<ins>3D MODELS:</ins>** I use Blender 2.79 for 3D model creation, because 2.8+ works very slow on my PC. Blender 2.7 will run very well on any PC.  
 Supported models are:
   - ply: The fist version, as it is exported by Blender 2.7.
   - obj/mtl: Should have no problems with these.
   - m3b: Binary PSP models, in PSP's internal format. (Blender 2.7 export plugin included).  
 
-**<ins>SKINNED MODELS:</ins>** These models use BONES to show animations, skinned models are incredibly complex, so I created a very simple format
+**<ins>3D SKINNED MODELS:</ins>** These models use BONES to show animations, skinned models are incredibly complex, so I created a very simple format
 (Blender 2.7 export plugin included) which is processed by the PSP when loading.  
 It is probably very easy to port the plugins to newer versions of Blender, but I just didn't have the motivation to port them.  
 Supported models are:
@@ -112,7 +112,7 @@ There are limitations when using these models:
   - Do not forget to apply location, rotation and scale to the armature object and the models.  
   - Do not rotate or translate bone.0 at frame 0, PSP will use this as the default position.  
     
-**<ins>MORPHING MODELS:</ins>** These models are created by storing several shapes, then the PSP can render a transition from one to the other.
+**<ins>3D MORPHING MODELS:</ins>** These models are created by storing several shapes, then the PSP can render a transition from one to the other.
 Supported models are:
   - m3m: a bunch of binary PSP models (Blender 2.7 export plugin included).
 Only 8 frames are supported.
