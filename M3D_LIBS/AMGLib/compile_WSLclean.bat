@@ -1,0 +1,2 @@
+wsl make clean
+pause
