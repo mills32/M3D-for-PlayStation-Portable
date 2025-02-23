@@ -1,0 +1,13 @@
+# Blender MTL File: 'untitled.blend'
+# Material Count: 1
+
+newmtl Material.010
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 1.000000 0.000000 0.948931
+Ks 0.218391 0.218391 0.218391
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd 4_star.png

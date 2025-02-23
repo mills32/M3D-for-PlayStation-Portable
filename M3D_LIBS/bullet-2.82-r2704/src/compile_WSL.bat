@@ -1,0 +1,2 @@
+wsl -e make
+pause
