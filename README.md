@@ -48,6 +48,10 @@ MULTITEXTURE SAMPLE:
 NURBS SURFACE:  
 ![screenshot](IMAGES/nurbs.png)
 
+OSLIB MAPS + SPRITES TV-OUT (captured on PPSSPP debugger which sometimes shows correctly the 768x480 TV-OUT framebuffer):  
+![screenshot](IMAGES/maps720x480.png)
+
+
 ## INSTALL & TEST
   
 Copy libM3D.a to pspsdk libs folder, and M3D.h to include folder.
