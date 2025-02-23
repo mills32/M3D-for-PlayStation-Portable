@@ -1,7 +1,6 @@
 # M3DLIB for PSP  
 
-![screenshot](IMAGES/nurbs_water.png)         ![screenshot](IMAGES/mirror.png)
-![screenshot](IMAGES/vehicle.png)
+![screenshot](IMAGES/m3d.png)
     
 This is a "GAME ENGINE" for the PlayStation Portable, it is a wrapper around several libraries,
 which are combined in one, the relevant functions are exposed as "M3D" by including M3D.h.  
