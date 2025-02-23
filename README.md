@@ -127,6 +127,7 @@ All models are exported with PSP internal coordinate system (in Blender 2.7: -Z 
   - Y: -Y = DOWN; +Y = UP  
   - X: -X = LEFT; +X = RIGHT
 
+You don't really need Blender to create the models, any program that generates models with the same structure, will work.
 
 ## BUGS
   - Sometimes you can load images with the wrong format and it will crash the image loader (OSLIB)
