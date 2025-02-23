@@ -48,8 +48,14 @@ MULTITEXTURE SAMPLE:
 NURBS SURFACE:  
 ![screenshot](IMAGES/nurbs.png)
 
-OSLIB MAPS + SPRITES TV-OUT (captured on PPSSPP debugger which sometimes shows correctly the 768x480 TV-OUT framebuffer):  
+OSLIB MAPS + SPRITES + TV-OUT (captured on PPSSPP debugger which sometimes shows correctly the 768x480 TV-OUT framebuffer):  
 ![screenshot](IMAGES/maps720x480.png)
+
+PHYSICS TEST:  
+![screenshot](IMAGES/physics.png)
+
+PLAYING AN MJPEG AND RENDERING TO A 64x64 TEXTURE (I used a model from N64's tiny3D engine):  
+![screenshot](IMAGES/rendertexture.png)  
 
 
 ## INSTALL & TEST
