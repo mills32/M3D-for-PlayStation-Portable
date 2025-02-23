@@ -1,7 +1,8 @@
 # M3DLIB for PSP  
-
+<p align="center">
 ![screenshot](IMAGES/M3D.png)
-    
+</p>
+
 This is a "GAME ENGINE" for the PlayStation Portable, it is a wrapper around several libraries,
 which are combined in one, the relevant functions are exposed as "M3D" by including M3D.h.  
 Thanks to the creators of AMGLib (Andresmargar), OSLib, and bullet.  
@@ -41,22 +42,24 @@ So this is a brief description of everything M3D does. For more details, read th
 **<ins>TV OUT:</ins>** You can enable TV OUT mode (on PSP 2000+), it will output a 720x480 image. This will be slow unless you use 4444, 5551 or 5650 modes.  
 
 ## SOME TESTS
-  
+
+<p align="center">
 MULTITEXTURE SAMPLE:  
 ![screenshot](IMAGES/multitexture.gif)
 
 NURBS SURFACE:  
 ![screenshot](IMAGES/nurbs.png)
 
-OSLIB MAPS + SPRITES + TV-OUT (captured on PPSSPP debugger which sometimes shows correctly the 768x480 TV-OUT framebuffer):  
+OSLIB MAPS + SPRITES + TV-OUT (captured on PPSSPP debugger, which sometimes shows correctly the 768x480 TV-OUT framebuffer):  
 ![screenshot](IMAGES/maps720x480.png)
 
 PHYSICS TEST:  
 ![screenshot](IMAGES/physics.png)
 
-PLAYING AN MJPEG AND RENDERING TO A 64x64 TEXTURE (CRT models from N64's tiny3D engine):  
+RENDER TO TEXTURE (CRT models from N64's tiny3D engine):  
 ![screenshot](IMAGES/rendertexture.png)  
 
+</p>
 
 ## INSTALL & TEST
   
