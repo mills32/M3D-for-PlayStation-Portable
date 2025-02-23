@@ -1,0 +1,2 @@
+python FurTexGenerator.py
+pause
