@@ -54,7 +54,7 @@ OSLIB MAPS + SPRITES + TV-OUT (captured on PPSSPP debugger which sometimes shows
 PHYSICS TEST:  
 ![screenshot](IMAGES/physics.png)
 
-PLAYING AN MJPEG AND RENDERING TO A 64x64 TEXTURE (I used a model from N64's tiny3D engine):  
+PLAYING AN MJPEG AND RENDERING TO A 64x64 TEXTURE (CRT models from N64's tiny3D engine):  
 ![screenshot](IMAGES/rendertexture.png)  
 
 
