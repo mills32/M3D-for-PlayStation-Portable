@@ -97,6 +97,7 @@ Supported models are:
   - ply: The fist version, as it is exported by Blender 2.7.
   - obj/mtl: Should have no problems with these.
   - m3b: Binary PSP models, in PSP's internal format. (Blender 2.7 export plugin included).  
+There is a python script to create fur/grass textures inside utils folder, once you crate the texture, you have to make objects with several layers, each one using part of the texture.
 
 **<ins>3D SKINNED MODELS:</ins>** These models use BONES to show animations, skinned models are incredibly complex, so I created a very simple format
 (Blender 2.7 export plugin included) which is processed by the PSP when loading.  
@@ -119,10 +120,12 @@ Supported models are:
   - m3m: a bunch of binary PSP models (Blender 2.7 export plugin included).
 Only 8 frames are supported.
 
+For more details, I included Blender 2.7 files with most of the models, so people can see how textures, triangles and bones are arranged.
 All models are exported with PSP internal coordinate system (in Blender 2.7: -Z FORWARD; Y UP):
   - Z: -Z = FORWARD; +Z = BACKWARD   
   - Y: -Y = DOWN; +Y = UP  
-  - X: -X = LEFT; +X = RIGHT   
+  - X: -X = LEFT; +X = RIGHT
+
 
 ## BUGS
   - Sometimes you can load images with the wrong format and it will crash the image loader (OSLIB)
