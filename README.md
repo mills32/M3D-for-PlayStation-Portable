@@ -68,10 +68,10 @@ Copy libM3D.a to pspsdk libs folder, and M3D.h to include folder.
 In windows you can use "install.bat" inside M3D_LIBS folder (edit the file and configure
 your PSPSDKDIR first).  
    
-To compile the samples or create yoour programs, run make inside any sample folder, 
+To compile the samples or create your programs, run make inside any sample folder, 
 or run compile_WSL.bat in windows. You need the last pspsdk (2025) which was only releassed 
-for linux. If you use windows, most computers can run WSL1 from windows  (WSL 1 is fast). 
-If your PC is very old and can't run WSL just install linux, or use a  virtual machine with 
+for linux. If you use windows most computers can run WSL1 from windows (WSL 1 is fast). 
+If your PC is very old and can't run WSL, just install linux, or use a virtual machine with 
 any linux distrubution. If you use mac, I can't help you.  
 
 For more advance modifications, just modify and compile AMG, OSL and BULLET.  
@@ -84,11 +84,10 @@ AMG code is a bit messy, but it is not very complex, I hope someone can find it 
 **<ins>IMAGES:</ins>** just PNG files, 32 bit RGBA, 24 bit RGB, indexed 256/16 colors.  
 **<ins>FONTS:</ins>** just PNG files, 32 bit RGBA, 24 bit RGB, indexed 256/16 colors. Image must be 16x16 characters, arranged as defined in basic ascii.
 It will support latin characters, or any other character supported when saving source files as "OEM US FORMAT / OEM US / CP 437 / ANSI".  
-**<ins>MAPS:</ins>** create them using a PNG image for the tiles, and TILED to create the map http://www.mapeditor.org/
+**<ins>2D MAPS:</ins>** create them using a PNG image for the tiles, and TILED to create the map http://www.mapeditor.org/
 maps must be in CSV format.  
-**<ins>MUSIC & SOUND:</ins>** OSL handles this, it can load wav, MP3, BGM, and tracker formats (MOD,XM,IT).  
-Be careful when loading tracker modules, they can use a lot of CPU/RAM.  
-**<ins>VIDEOS:</ins>** Supports MJPEG and H264 videos (script to convert them in UTILS folder) up to 480x272 60 FPS. Some 60 FPS videos will crash. 
+**<ins>MUSIC & SOUND:</ins>** OSL handles this, it can load wav, MP3, BGM, and tracker formats (MOD,XM,IT).Be careful when loading tracker modules, they can use a lot of CPU/RAM.  
+**<ins>VIDEOS:</ins>** Supports MJPEG and H264 videos (script to convert them in UTILS folder) up to 480x272 60 FPS. Some 60 FPS videos will crash.  
 **<ins>3D IMAGE MIPMAPS:</ins>** If you enable mipmapping, you can use custom mipmaps by giving your main texture the name "image.png", the first mipmap "image_mip1.png" and the second mipmap "image_mip2.png". These three images must use the same color format, else PSP will crash.  
 **<ins>STATIC MODELS:</ins>** I use Blender 2.79 for 3D model creation, because 2.8+ works very slow on my PC. Blender 2.7 will run very well on any PC.  
 Supported models are:
