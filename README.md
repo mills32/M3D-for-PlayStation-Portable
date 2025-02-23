@@ -1,8 +1,7 @@
 # M3DLIB for PSP  
 
 ![screenshot](IMAGES/nurbs_water.png)         ![screenshot](IMAGES/mirror.png)
-    
-![screenshot](IMAGES/vehicle.png)        ![screenshot](IMAGES/multitexture.gif)
+![screenshot](IMAGES/vehicle.png)
     
 This is a "GAME ENGINE" for the PlayStation Portable, it is a wrapper around several libraries,
 which are combined in one, the relevant functions are exposed as "M3D" by including M3D.h.  
@@ -41,6 +40,13 @@ So this is a brief description of everything M3D does. For more details, read th
 **<ins>3D NURBS:</ins>** PSP can generate a surface from several points you can animate, I added this because I think it looks ok for simple water simulations.   
 **<ins>TV OUT:</ins>** You can enable TV OUT mode (on PSP 2000+), it will output a 720x480 image. This will be slow unless you use 4444, 5551 or 5650 modes.  
 
+## SOME TESTS
+  
+MULTITEXTURE SAMPLE:  
+![screenshot](IMAGES/multitexture.gif)
+
+NURBS SURFACE:  
+![screenshot](IMAGES/nurbs.png)
 
 ## INSTALL & TEST
   
