@@ -54,6 +54,9 @@ OSLIB MAPS + SPRITES + TV-OUT (captured on PPSSPP debugger, which sometimes show
 PHYSICS TEST:  
 ![screenshot](IMAGES/physics.png)
 
+SKINNED MODEL:  
+![screenshot](IMAGES/dino.gif)  
+
 RENDER TO TEXTURE (CRT models from N64's tiny3D engine):  
 ![screenshot](IMAGES/rendertexture.png)  
 
