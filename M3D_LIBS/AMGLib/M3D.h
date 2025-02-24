@@ -36,7 +36,9 @@
 #define M3D_BULLET_SHAPE_CYLINDER	4
 #define M3D_BULLET_SHAPE_CONVEXHULL	5
 
+//SET 3D camera, clipping will delete triangles if their position is bigger than "far"
 void M3D_InitMatrixSystem(float fov,float near,float far,int clipping);
+
 extern "C" {
 
 float M3D_Sin(float angle);
@@ -108,7 +110,7 @@ typedef struct {
 	u8 Ground;
 }M3D_Player;
 
-
+//M3D OBJECT TYPES
 typedef struct{ void *Texture2D; } M3D_Texture;
 typedef struct{ void *Map2D; } M3D_MAP;
 typedef struct{ void *Sound; } M3D_SOUND;
@@ -118,13 +120,13 @@ typedef struct{ void *Model; } M3D_ModelBIN;
 typedef struct{ void *SkinnedModel; } M3D_SkinnedActor;
 typedef struct{ void *MorphingModel; } M3D_MorphingActor;
 typedef struct {void *NurbsSurface;} M3D_NurbsSurface;
- 
+
+
 /******************************************/
 /************** FUNCTIONS *****************/
 /******************************************/
 
-
-//SOUND
+//SOUND (OSL)
 M3D_SOUND *M3D_LoadMP3(const char *path,int type);
 M3D_SOUND *M3D_LoadMOD(const char *path,int type);
 M3D_SOUND *M3D_LoadWAV(const char *path,int type);
@@ -133,12 +135,12 @@ void M3D_SOUND_Play(M3D_SOUND *sound, int voice);
 void M3D_SOUND_Stop(M3D_SOUND *sound);
 void M3D_SOUND_Delete(M3D_SOUND *sound);
 int M3D_SOUND_Playing(M3D_SOUND *sound);
-void M3D_MikModReverb(u8 rev);
+void M3D_MikModReverb(u8 rev); //DISABLE reverb to make mikmod faster
 
 //M3D(AMG - OSLib)
 void M3D_Init(u32 psm, u32 TV);
-void M3D_SetFade(u32 mode, u32 color, u32 speed);//Fade screen. Mode 1 in / 2 out
-//Frameskip: (0 = keep 60 if possible, else drop frames. 1 = keep 30 (does not work well)
+void M3D_SetFade(u32 mode, u32 color, u32 speed);//Fade screen. Mode 1 in / mode 2 out
+//Frameskip: (0 = keep 60 if possible, else drop frames. /  1 = keep 30 (does not work well)
 void M3D_FrameSkip(int mode); 
 int M3D_TV_State();//TV out state 0 = OFF; 1 = ON
 extern int M3D_ScreenX;	//Screen size
@@ -148,14 +150,20 @@ void M3D_Quit();
 u16 M3D_GetFreeRAM();
 u16 M3D_GetTotalVRAM();
 u16 M3D_GetUsedVRAM();
-void M3D_updateScreen(u32 color);//Use this at the start (or end) of any loop or after any update you do on screen
+void M3D_updateScreen(u32 color);//Use this at the start (or end) of any loop, or after any update you do on screen.
 int M3D_GetCpuSpeed();
 char *M3D_GetScreenMode();
 void M3D_DITHER(int mode);//PSX style dither, it looks great with 5551 and 5650 modes
-void M3D_2DMode(int mode);
+void M3D_2DMode(int mode);//Use this if you have to draw 2D stuff, or print things.
 void M3D_FogEnable(float near, float far, u32 color);
 void M3D_FogDisable();
 
+/*PRINT TEXT
+	tex: texture (font) to use
+ 	wave_amp: wave amplitude, if 0, regular text will be printed.
+  	wave_speed: wave size or wave length.
+   	wave_val: wave position. Change this to animate the wave.
+*/
 void M3D_Print(M3D_Texture *tex, int x, int y, u32 color, int wave_amp, int wave_speed, float wave_val, char *text);
 #define M3D_Printf(tex, x, y, color, wave_amp, wave_speed, wave_val, ...){\
 	char __str[1000];\
