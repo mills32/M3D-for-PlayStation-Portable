@@ -68,7 +68,7 @@ TV OUT IN 3D MODE:
 
 ## INSTALL & TEST
   
-Copy libM3D.a to pspsdk libs folder, and M3D.h to include folder.
+Copy M3D_LIBS/release/lib/libM3D.a to pspsdk libs folder, and M3D_LIBS/release/include/M3D.h to include folder.
 In windows you can use "install.bat" inside M3D_LIBS folder (edit the file and configure
 your PSPSDKDIR first).  
    
