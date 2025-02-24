@@ -31,11 +31,11 @@ So this is a brief description of everything M3D does. For more details, **read 
 **<ins>2D ANIMATIONS:</ins>** Sprite animations, sprite rotation, palette animation, map animation (replace/animate tiles).  
 **<ins>MULTIMEDIA:</ins>** Play music and videos.  
 **<ins>3D SCENES:</ins>** Cameras, lights, model rendering, multitextures, environment mapping textures, render to texture.   
-**<ins>3D ANIMATION:</ins>** Skinned and morphing models.  
+**<ins>3D ANIMATION:</ins>** Skinned and morphing models, I found this very difficult to code, because I had to learn how quaternions and matrix rotations work..  
 **<ins>3D SHADOWS:</ins>** Volumetric stencil shadows, and projection shadows.  
 **<ins>STENCIL MIRRORS:</ins>** A simple mirror/glossy surface simulation.  
 **<ins>3D PARTICLES:</ins>** A simplified version of OPENTRI library particle system, with several parameters to set.  
-**<ins>3D BULLET PHYSICS:</ins>** Several shapes (sphere, cone, box, triangle mesh), gravity, set forces, collision detection, ray tracing collision, constraints (ball and hinge), simple vehicle (Car).  
+**<ins>3D BULLET PHYSICS:</ins>** Several shapes (sphere, cone, box, triangle mesh), gravity, set forces, collision detection, ray tracing collision, constraints (ball and hinge), simple vehicle (Car). The original AMGLib had a bug in physics rotations, it used euler angles instead of quaternions, and that caused models to rotate in weird ways. It was a lot of work but I got quaternions working.
 **<ins>FAKE BUMP MAPPING:</ins>** A simulation of modern shaders using paletted textures, only works well on mostly flat surfaces.  
 **<ins>3D NURBS:</ins>** PSP can generate a surface from several points you can animate, I added this because I think it looks ok for simple water simulations.   
 **<ins>TV OUT:</ins>** You can enable TV OUT mode (on PSP 2000+), it will output a 720x480 image. This will be slow unless you use 4444, 5551 or 5650 modes.
