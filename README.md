@@ -21,7 +21,7 @@ Thanks again to Andresmargar for creating this.
 
 **<ins>OPENTRI:</ins>** I just used the particle system from this lib, because I could not make it work from the library included in pspsdk.
   
-**<ins>LICENSE:</ins>** I don't care a lot about licenses, just want people to use the PSP, so read whatever licenses OSL, AMG and Bullet have. About the code I added... I don't like commercial uses, but people can (and will) do whatever they want with it.
+**<ins>LICENSE:</ins>** I don't care a lot about licenses, just want people to use the PSP, so read whatever licenses OSL, AMG, OpenTRI and Bullet have. About the code I added... I don't like commercial uses, but people can (and will) do whatever they want with it.
   
   
 ## FUNCTIONS  
