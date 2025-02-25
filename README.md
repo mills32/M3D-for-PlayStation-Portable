@@ -6,7 +6,7 @@ This is a "GAME ENGINE" for the PlayStation Portable, it is a wrapper around sev
 which are combined in one, the relevant functions are exposed as "M3D" by including M3D.h.  
 Thanks to the creators of AMGLib (Andresmargar, who integrated bullet inside AMGLib), OSLib, and bullet. 
 
-LICENSE: Whatever license the used parts have (OSL, AMG and BUllet). The modified AMG with my additions (palette animations, skinning, morphing, shadows, bump mapping) is licensed as "do whatever you want", with the exception commercial uses.
+LICENSE: Whatever license the used parts have (OSL, AMG and BUllet). The modified AMG with my additions (palette animations, skinning, morphing, shadows, bump mapping) is licensed as "do whatever you want", with the exception of commercial uses.
 
 The base for this project started as part of ONELua for PSP, so this was possible thanks in part to the members of ONELua project.  
   
