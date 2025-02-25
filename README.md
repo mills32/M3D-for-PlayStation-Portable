@@ -4,7 +4,7 @@
   
 This is a "GAME ENGINE" for the PlayStation Portable, it is a wrapper around several libraries,
 which are combined in one, the relevant functions are exposed as "M3D" by including M3D.h.  
-Thanks to the creators of AMGLib (Andresmargar, who integrated bullet inside AMGLib), OSLib, and bullet. 
+Thanks to the creators of AMGLib (Andresmargar, who integrated bullet inside AMGLib), OSLib, openTRI and bullet. 
   
 The base for this project started as part of ONELua for PSP, so this was possible thanks in part to the members of ONELua project.  
   
@@ -19,7 +19,7 @@ This M3D warpper does not implemet any wifi/net/load/save functions, you can use
 **<ins>AMGLib:</ins>** This is a heavily modified version of the original, I added a lot of functions here.  
 Thanks again to Andresmargar for creating this.  
 
-**<ins>OPENTRI:</ins>** I just used the particle system from this lib, because I could not make it work from the library included in pspsdk.
+**<ins>openTRI:</ins>** I just used the particle system from this lib, because I could not make it work from the library included in pspsdk.
   
 **<ins>LICENSE:</ins>** I don't care a lot about licenses, just want people to use PSPs, so read whatever licenses OSL, AMG, OpenTRI and Bullet have. About the code I added... I don't like commercial uses, but people can (and will) do whatever they want with it.
   
