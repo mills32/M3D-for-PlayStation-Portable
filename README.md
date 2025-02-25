@@ -5,7 +5,9 @@
 This is a "GAME ENGINE" for the PlayStation Portable, it is a wrapper around several libraries,
 which are combined in one, the relevant functions are exposed as "M3D" by including M3D.h.  
 Thanks to the creators of AMGLib (Andresmargar, who integrated bullet inside AMGLib), OSLib, and bullet. 
-  
+
+LICENSE: Whatever license the used parts have (OSL, AMG and BUllet).
+
 The base for this project started as part of ONELua for PSP, so this was possible thanks in part to the members of ONELua project.  
   
 I just wanted to create an engine easy to use, and powerful enough to create things you can call "games" for PSP.  
