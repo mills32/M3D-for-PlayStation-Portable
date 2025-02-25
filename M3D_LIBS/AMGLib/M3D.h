@@ -110,16 +110,19 @@ typedef struct {
 	u8 Ground;
 }M3D_Player;
 
+
 //M3D OBJECT TYPES
-typedef struct{ void *Texture2D; } M3D_Texture;
-typedef struct{ void *Map2D; } M3D_MAP;
-typedef struct{ void *Sound; } M3D_SOUND;
-typedef struct{ void *Camera; } M3D_Camera;
-typedef struct{ void *Model; } M3D_Model;
-typedef struct{ void *Model; } M3D_ModelBIN;
-typedef struct{ void *SkinnedModel; } M3D_SkinnedActor;
-typedef struct{ void *MorphingModel; } M3D_MorphingActor;
-typedef struct {void *NurbsSurface;} M3D_NurbsSurface;
+//----------------
+
+typedef struct{ void *Texture2D; } M3D_Texture;				//Image for sprites or textures
+typedef struct{ void *Map2D; } M3D_MAP;						//2D OSL_MAP
+typedef struct{ void *Sound; } M3D_SOUND;					//OSL_SOUND MP3/WAV/Traker file
+typedef struct{ void *Camera; } M3D_Camera;					//A PSP 3D Camera
+typedef struct{ void *Model; } M3D_Model;					//OBJ/PLY loaded 3D model
+typedef struct{ void *Model; } M3D_ModelBIN;				//Binary PSP format model
+typedef struct{ void *SkinnedModel; } M3D_SkinnedActor;		//3D model with bone animations
+typedef struct{ void *MorphingModel; } M3D_MorphingActor;	//3D model with shape animations	
+typedef struct {void *NurbsSurface;} M3D_NurbsSurface;		//3D surface
 
 
 /******************************************/
@@ -159,6 +162,7 @@ void M3D_FogEnable(float near, float far, u32 color);
 void M3D_FogDisable();
 
 /*PRINT TEXT
+------------
 	tex: texture (font) to use
  	wave_amp: wave amplitude, if 0, regular text will be printed.
   	wave_speed: wave size or wave length.
@@ -172,14 +176,13 @@ void M3D_Print(M3D_Texture *tex, int x, int y, u32 color, int wave_amp, int wave
 }
 
 
-/*TEXTURES---------------------------
-	M3D_Texture: an image/texture
+/*TEXTURES
+----------
 	psm: color mode for textures (COLOR_4444/5551/5650/8888)
 	load: were to store the texture (M3D_IN_RAM/VRAM). It will always try to load to VRAM
 	mapping: normal (M3D_TEXTURE_COORDS) reflection (M3D_ENVIRONMENT_MAP)	
 	filter: 0 pixelated, 1 smooth
 */
-
 M3D_Texture *M3D_GetFont(int n);
 void M3D_SetMipMapping(int set, float bias);
 M3D_Texture *M3D_LoadTexture(const char *path, u8 load, u32 psm);
@@ -198,8 +201,11 @@ void M3D_Texture3D_Animate(M3D_Texture *tex, u8 xframes, u8 yframes, u8 *anim, f
 void M3D_RenderToTextureEnable(M3D_Texture *t);//Render to a custom texture, you can then use it on models.
 void M3D_RenderToTextureDisable(void);
 
-/*MAPS--------------------------------
-	M3D_MAP: a MAP (OSL_MAP)
+/*MAPS
+------
+	mode: 0 = unswizzled tiles, slower but allows tile animations; 1 = swizzled tiles, faster but does not allow tile aniations.
+	psm: color mode for tiles (COLOR_4444/5551/5650/8888)
+	load: were to store the tiles (M3D_IN_RAM/VRAM). It will always try to load to VRAM
 	slot: tile animation slot (there are 16 slots)
 	tile: destination tile number in tilemap
 	start_tile: source tile number in tilemap
@@ -212,14 +218,44 @@ void M3D_MapAnimateTiles(M3D_MAP *map, int slot, int tile, int start_tile, u8 an
 void M3D_MapUnload(M3D_MAP *map);
 
 
-//MISC
+/*MISC
+------
+	tyoe: 0 = cycle M3D_Texture palette; 1 = cycle M3D_MAP palette
+	image: The M3D_Texture or M3D_MAP
+	setpalettes: an array which defines palete animation.
+		
+		u8 palette_animation[] = {
+			X,//Number of palette cycles
+			0,0,18,8,//First cycle: rate (blend speed), invert, first color in image palette, number of colors to cycle,
+			0,0,48,8 //Next  cycle: rate (blend speed), invert ...
+			...
+			...
+		};
+
+	blend: 0 = disabled; 1 = enabled, use blend function to smooth color changes
+*/
 void M3D_PalettesCycle(int type, void *image, u8 *setpalettes, u8 blend);
+//From OSL, Draws a rectangle using vertex colors, use it to draw color gradients.
 void M3D_DrawGradientRect(int x, int y, int w, int h, u32 col1, u32 col2, u32 col3, u32 col4);
 void M3D_DrawLine(int x0, int y0, u32 color0, int x1, int y1, u32 color1);
+//Draw a health bar using an M3D_Texture (font)
 void M3D_DrawHealthBar(int x, int y, int health, u32 color = 0xFF00FF00, int sizex = 8, int sizey = 8, M3D_Texture *tex = NULL);
 
 
-//RETRO
+/*RETRO EFFECTS
+---------------
+	mode: 0 or 1. When drawing a wavy image, it sets vertical or horizontal waves.
+	amp: image wave amplitude.
+	len: image wave length
+	tx,ty: rotozoom rotation center.
+	px,py,scale: plasma parameters
+	
+	M3D_PlasmaTextureCreate: creates a texture which can be used on sprites or 3D models.
+	to update this, you run M3D_PlasmaTextureUpdate
+	
+	M3D_Plasma2DSet: set a full screen plasma, to update this, you just run M3D_Draw2DPlasma.
+
+*/
 void M3D_DrawImageWave(M3D_Texture *tex, int x, int y, float wave_val, u32 mode, s16 amp, s16 len);
 void M3D_DrawRotoZoom(M3D_Texture *tex, u32 alpha, int tx, int ty, float rot, float scale);
 M3D_Texture *M3D_PlasmaTextureCreate(const char *path);
@@ -229,7 +265,12 @@ void M3D_Draw2DPlasma(u8 alpha, int px,int py,float scale,float speed);
 void M3D_DrawCopperBars(u8 number,u8 size,u16 center,u16 amplitude,u8 alpha,float speed);
 
 
-//VIDEO
+/*VIDEO
+-------
+	MJPEG videos can be used on 3D models or sprites.
+	H264 videos are always displayed on full screen.
+
+*/
 int M3D_VIDEO_LoadMJPEG(const char *path);
 void M3D_VIDEO_PlayFullScreenMJPEG(const char *path,int loop);
 void M3D_VIDEO_MJPEGToTexture_Start(int video_handle, int loop, M3D_Texture *tex);
@@ -237,15 +278,23 @@ void M3D_VIDEO_MJPEGToTexture_Stop(M3D_Texture *tex);
 int M3D_VIDEO_PlayH264(const char *path);
 
 
-//3D CAMERA
+/*3D CAMERA
+----------- 
+*/
 M3D_Camera *M3D_CameraInit();
 void M3D_CameraSet(M3D_Camera *camera);
 void M3D_CameraSetPosition(M3D_Camera *camera,float x, float y, float z);
-void M3D_CameraSetEye(M3D_Camera *camera,float x, float y, float z);
+void M3D_CameraSetEye(M3D_Camera *camera,float x, float y, float z);//Where the camera looks at
 void M3D_CameraMove(M3D_Camera *camera, float dx, float dy, float dz);
-void M3D_CameraSetUp(M3D_Camera *camera, float ux, float uy, float uz);
+void M3D_CameraSetUp(M3D_Camera *camera, float ux, float uy, float uz);//Camera rotation
 
-//3D LIGHT
+/*3D LIGHT
+----------
+	n: light number, I think PSP has 4 lights
+	type: M3D_LIGHT_DIRECTIONAL / M3D_LIGHT_POINTLIGHT / M3D_LIGHT_SPOTLIGHT.
+		spotlight is very difficult to set up, I did not provide setup functions for it.
+	diffise,specular,ambient: light colors
+*/
 void M3D_LightSet(int n, u32 type, u32 diffuse, u32 specular, u32 ambient);
 void M3D_LightSetPosition(int n, float px, float py, float pz);
 ScePspFVector3 M3D_LightGetPosition(int n);
@@ -253,10 +302,16 @@ void M3D_LightEnable(u8 n);
 void M3D_LightDisable(u8 n);
 
 
-//3D MODEL
+/*3D MODEL
+----------
+	css: outline size, for cartoon style models with a black outline.
+	psm: Color mode for loaded textures
+	transparent: enable soecial render mode to reduce artifacts in transparent models
+	offset: not yet implemented 
+*/
 M3D_Model *M3D_LoadModel(const char *path, float css, u32 psm);
 M3D_Model *M3D_LoadModelPLY(const char *path, float css, u32 psm);
-M3D_Model *M3D_ModelArray(int number);
+//M3D_Model *M3D_ModelArray(int number);
 M3D_ModelBIN *M3D_LoadModelBIN(const char *path, u32 psm);
 void M3D_ModelRender(M3D_Model *model, int transparent);
 void M3D_ModelBINRender(M3D_ModelBIN *mesh, u32 offset);
@@ -410,14 +465,4 @@ ScePspFVector3 M3D_VehicleGetPos(M3D_Model *model, int obj_number);
 
 
 
-
-
-
-
-
-
-
-
-
 }
-

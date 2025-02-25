@@ -476,11 +476,13 @@ void AMG_UpdateBody(AMG_Object *model){
 	ScePspQuatMatrix __attribute__((aligned(64))) q2;
 	ScePspQuatMatrix __attribute__((aligned(64))) q3;
 	btVector3 center;
+	btVector3 pos;
 	amg_mdh *obj = &amg_model_ptr[model->bullet_id];
 	//If rigid body 
 	if (obj->type == 0){
 		obj->Body->activate();
 		center = obj->Body->getWorldTransform().getOrigin();
+		memcpy(&pos,&model->Pos,sizeof(btVector3));
 		memcpy(&model->Pos,&center,sizeof(ScePspFVector3));
 		model->Pos.x = (float)center[0];
 		model->Pos.y = (float)center[1];
@@ -495,11 +497,42 @@ void AMG_UpdateBody(AMG_Object *model){
 			memcpy(&q3,&qe,sizeof(ScePspQuatMatrix));
 			//set rotation to body
 			obj->Body->getWorldTransform().setRotation(qe);
+			//set position to body
+			obj->Body->getWorldTransform().setOrigin(pos);
 			//Set rotation to model
 			q3.w = -q3.w;
 			AMG_RotateQuat(GU_MODEL,&q3);
 		}
 	}
+	//Reset collisions
+	//model->Collision = false;
+	//model->CollidedWith = 0;
+	//obj->md->Collision = 0;
+	//obj->md->CollidedWith = 0xFFFF;
+}
+
+void AMG_UpdateBINBody(AMG_BinaryMesh *model){
+	btQuaternion __attribute__((aligned(64))) q;
+	btQuaternion __attribute__((aligned(64))) qe;
+	ScePspQuatMatrix __attribute__((aligned(64))) q2;
+	ScePspQuatMatrix __attribute__((aligned(64))) q3;
+	btVector3 pos;
+	amg_mdh *obj = &amg_model_ptr[model->Object[0].bullet_id];
+
+	obj->Body->activate();
+	memcpy(&pos,&model->Pos,sizeof(btVector3));
+	AMG_Translate(GU_MODEL, &model->Pos);
+	//Get rotation values from user
+	qe.setEuler(model->Rot.y,model->Rot.x,model->Rot.z);
+	memcpy(&q3,&qe,sizeof(ScePspQuatMatrix));
+	//set rotation to body
+	obj->Body->getWorldTransform().setRotation(qe);
+	//set position to body
+	obj->Body->getWorldTransform().setOrigin(pos);
+	//Set rotation to model
+	q3.w = -q3.w;
+	AMG_RotateQuat(GU_MODEL,&q3);
+
 	//Reset collisions
 	//model->Collision = false;
 	//model->CollidedWith = 0;

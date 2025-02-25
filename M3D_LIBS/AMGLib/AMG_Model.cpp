@@ -20,6 +20,7 @@ extern float vfpu_fmaxf(float x,float y);//in vfpu
 int skip;
 
 void AMG_UpdateBody(AMG_Object *model);
+void AMG_UpdateBINBody(AMG_BinaryMesh *model);
 void AMG_UpdateVehicleBody(AMG_Model *model);
 void AMG_UpdateVehicleWheel(AMG_Model *model, int i);
 
@@ -131,10 +132,12 @@ void AMG_RenderBinaryMesh(AMG_BinaryMesh *mesh, u32 offset){
 	if(mesh == NULL) return;
   if(!skip){	
     AMG_PushMatrix(GU_MODEL);
-	if(mesh->Object[0].phys == 0){
+	if(mesh->Object[0].Physics == 0){
 		AMG_Translate(GU_MODEL, &mesh->Pos);
 		AMG_Rotate(GU_MODEL, &mesh->Rot);
 		AMG_Scale(GU_MODEL, &mesh->Scale);
+	} else {
+		AMG_UpdateBINBody(mesh);
 	}
 	AMG_UpdateMatrices();											// Actualiza las matrices
 	sceGuColorMaterial(GU_DIFFUSE | GU_SPECULAR | GU_AMBIENT);		// Define los componentes materiales a usar
@@ -1378,9 +1381,9 @@ void M3D_ModelBINSetPosition(M3D_ModelBIN* m,float x, float y, float z){
 
 void M3D_ModelBINSetRotation(M3D_ModelBIN* m,float rx, float ry, float rz){
 	AMG_BinaryMesh *model = (AMG_BinaryMesh *)m;
-	model->Rot.x =rx;
-	model->Rot.y =ry;
-	model->Rot.z =rz;
+	model->Rot.x = M3D_Deg2Rad(rx);
+	model->Rot.y = M3D_Deg2Rad(ry);
+	model->Rot.z = M3D_Deg2Rad(rz);
 }
 
 void M3D_ModelBINTranslate(M3D_ModelBIN* m,float dx, float dy, float dz){
@@ -1392,9 +1395,9 @@ void M3D_ModelBINTranslate(M3D_ModelBIN* m,float dx, float dy, float dz){
 
 void M3D_ModelBINRotate(M3D_ModelBIN* m,float drx, float dry, float drz){
 	AMG_BinaryMesh *model = (AMG_BinaryMesh *)m;
-	model->Rot.x+=drx;
-	model->Rot.y+=dry;
-	model->Rot.z+=drz;
+	model->Rot.x+=M3D_Deg2Rad(drx);
+	model->Rot.y+=M3D_Deg2Rad(dry);
+	model->Rot.z+=M3D_Deg2Rad(drz);
 }
 
 void M3D_ModelBINScrollTexture(M3D_ModelBIN* m,float du, float dv){
