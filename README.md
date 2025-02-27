@@ -12,7 +12,7 @@ I just wanted to create an engine easy to use, and powerful enough to create thi
   
 **<ins>OSLIB:</ins>** Unchanged as it was in late 2024, I include a copy here, in M3D_LIBS folder.  
 If you want to access all OSL functions, just "#include <oslib/oslib.h>".  
-This M3D warpper does not implemet any wifi/net/load/save functions, you can use OSL ones.  
+This M3D warpper does not implemet any wifi/network/load/save functions, you can use OSL ones.  
   
 **<ins>BULLET:</ins>** Version 2.82-r2704, I also include it in M3D_LIBS folder.  
   
