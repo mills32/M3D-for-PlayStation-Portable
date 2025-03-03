@@ -22,7 +22,7 @@ PSP_HEAP_SIZE_KB(-1024);
 int main(int argc, char* argv[]){
 	M3D_Init(COLOR_8888,0);
 	
-	M3D_VIDEO_PlayH264("Files/blender_bbb60_H264.avi");
+	M3D_VIDEO_PlayH264("Files/bad_apple60_H264.avi");
 	M3D_VIDEO_PlayFullScreenMJPEG("Files/Video_MJPEG1.avi",0);
 	
 	M3D_Texture *Font0 = M3D_GetFont(0);

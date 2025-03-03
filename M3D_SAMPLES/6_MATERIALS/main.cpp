@@ -132,10 +132,12 @@ int main(){
 		M3D_LightEnable(0);
 			if (model_number == 25){
 				M3D_CameraSetPosition(camera,0,2,6);
-				M3D_ModelSetPosition(Reflected,0,0,M3D_fabsf(M3D_Sin(bounce+=0.1)/2),0);
-				M3D_ModelRotate(Reflected,0,0,0.6,0);
+				M3D_ModelSetPosition(Reflected,0,0,1/*M3D_fabsf(M3D_Sin(bounce+=0.03)/2)*/,0);
+				M3D_ModelSetOrigin(Reflected,0,0,0,0);
+				M3D_ModelRotate(Reflected,0,0,0,0.2);
+				M3D_ModelSetPosition(Mirror,0,0,-0.4,0);
 				M3D_StartReflection(Mirror,0);
-					M3D_ModelRenderMirror(Reflected,0,1);
+					M3D_ModelRenderMirror(Reflected,0,0,1);
 				M3D_FinishReflection();
 				M3D_ModelRender(Reflected,0);
 			} else if (model_number == 26){

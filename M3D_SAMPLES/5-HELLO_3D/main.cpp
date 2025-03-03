@@ -72,6 +72,7 @@ int main(){
 		M3D_ModelRender(Teapot,0);
 		M3D_PlasmaTextureUpdate(Plasma,3,1,0.5,2);
 		M3D_ModelRotate(PlasmaCube,0,0,0.1,-0.1);
+		M3D_ModelSetOrigin(PlasmaCube,0,-4,2,14);//overrides origin set by Translate/Rotate functions
 		M3D_ModelRender(PlasmaCube,0);
 
 		M3D_LightDisable(0);

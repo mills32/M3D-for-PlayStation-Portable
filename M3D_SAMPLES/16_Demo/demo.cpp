@@ -126,6 +126,7 @@ int main(int argc, char **argv){
 		M3D_DrawSkyBox(Sky,45);
 		
 		M3D_ModelBINRender(Mesh,0);
+		
 		ScePspFVector3 FOX_Position = M3D_SkinnedActorGetPos(Fox);
 		
 		M3D_ModelRender(Keys[0],0);

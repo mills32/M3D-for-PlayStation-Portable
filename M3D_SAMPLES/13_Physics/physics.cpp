@@ -64,6 +64,9 @@ int main(){
 	M3D_LightSetPosition(0, 0.3,1,0.3);
     M3D_Camera *camera = M3D_CameraInit();
 	
+	M3D_Model *Mirror = M3D_LoadModelPLY("Files/mirror.ply",0,COLOR_4444);
+	M3D_ModelSetPosition(Mirror,0,0,-2.98109,0);//
+	
 	M3D_Texture *Font0 = M3D_GetFont(0);
 	M3D_Texture *Font1 = M3D_GetFont(1);
 	
@@ -89,7 +92,7 @@ int main(){
 	}
 	
 	M3D_Model *Ball = M3D_LoadModelPLY("Files/ball.ply",0,COLOR_T4);
-	M3D_ModelSetOcclusion(Ball,0,1);
+	//M3D_ModelSetOcclusion(Ball,0,1);
 	M3D_Model *Ground = M3D_LoadModelPLY("Files/Track.ply",0,COLOR_T4);//
 	M3D_Texture *BKG = M3D_LoadRawImage("Files/sky.png");
 
@@ -130,8 +133,13 @@ int main(){
 		M3D_2DMode(1);
 			M3D_DrawImage(BKG,0,0);
 		M3D_2DMode(0);
-			
+		
 		M3D_LightEnable(0);
+		
+			M3D_StartReflection(Mirror,0);
+				M3D_ModelRenderMirror(Ball,0,0,1);
+			M3D_FinishReflection();
+		
 			M3D_ModelRender(Ground,0);
 			for (i = 0; i < 3;i++) M3D_ModelRender(Coconut[i],0);
 			for (i = 0; i < 3;i++) M3D_ModelRender(Boxes[i],0);

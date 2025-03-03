@@ -20,6 +20,8 @@ int main(){
 	M3D_Texture *Font0 = M3D_GetFont(0);
 	M3D_Texture *Font1 = M3D_GetFont(1);
 	
+	M3D_Model *Mirror = M3D_LoadModelPLY("Files/mirror.ply",0,COLOR_5650);
+	
 	//Load morphing model
 	M3D_MorphingActor *Morph0 = M3D_LoadMorphingActor("Files/morph0.m3m",0,COLOR_4444);
 	M3D_MorphingActorConfig(Morph0, 0, 6, 130, 1);
@@ -50,6 +52,11 @@ int main(){
 		if (Model != 5){
 			if (Model == 4) M3D_SkinnedActorSetPosition(A[Model],0,1,0);
 			else M3D_SkinnedActorSetPosition(A[Model],0,0,0);
+			
+			M3D_StartReflection(Mirror,0);
+				M3D_SkinnedActorRenderMirror(A[Model],1);
+			M3D_FinishReflection();
+			
 			M3D_SkinnedActorRender(A[Model]);
 		}
 		

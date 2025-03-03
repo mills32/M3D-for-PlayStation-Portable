@@ -8,16 +8,16 @@ PSP_HEAP_SIZE_KB(-1024);
 //For this character set to work well, LOAD and SAVE
 //source files in "OEM US FORMAT". 
 char test_box_8x8[] = {
-	"รรรรรรรรรรรรรรรรรรรรรรรรรรยป\n"
-	"ยบ  TEXT BOX 8x8  FORMAT:  ยบ\n"
-	"ยบ OEM US / CP 437 / ANSI  ยบ\n"
-	"รรรรรรรรรรรรรรรรรรรรรรรรรรยผ\n"
+	"ษอออออออออออออออออออออออออป\n"
+	"บ  TEXT BOX 8x8  FORMAT:  บ\n"
+	"บ OEM US / CP 437 / ANSI  บ\n"
+	"ศอออออออออออออออออออออออออผ\n"
 };
 
 char test_box_16x16[] = {
-	"รรรรรรรรรรรรรรรรรยป\n"
-	"ยบ TEXT BOX 16x16 ยบ\n"
-	"รรรรรรรรรรรรรรรรรยผ\n"
+	"ษออออออออออออออออป\n"
+	"บ TEXT BOX 16x16 บ\n"
+	"ศออออออออออออออออผ\n"
 };
 
 //For this character set to work well, LOAD and SAVE
@@ -26,11 +26,12 @@ char test_chars[] = {
 	" !\"#$%%&'()*+,-./\n""0123456789:;<=>?\n"
 	"@ABCDEFGHIJKLMNO\n""PQRSTUVWXYZ[\\]^_\n"
 	"`abcdefghijklmno\n""pqrstuvwxyz{|}~0\n"
-	"โฌยโ€ฦ’โ€โ€ฆโ€ โ€กหโ€ฐล โ€นล’ยลฝย\n""ยโ€โ€โ€โ€โ€ขโ€“โ€”หโขลกโ€บล“ยลพลธ\n"
-	"ย ยกยขยฃยคยฅยฆยงยจยฉยชยซยฌยญยฎยฏ\n""ยฐยฑยฒยปยผรรร ร ร รรร\n"
-	"ร รกรขรฃรครฅรฆรงรจรฉรชรซรฌรญรฎรฏ\n""รฐรฑรฒรณรดรตรถรทรธรนรบรปรผรฝรพ \n"	
+	"€…\n""‘’“”•–—\n"
+	" กขฃคฅฆงจฉชซฌญฎฏ\n""ฐฑฒปผศษอ Û Ü ÝÞ฿\n"
+	"เแโใไๅๆ็่้๊๋์ํ๎๏\n""๐๑๒๓๔๕๖๗๘๙๚๛üýþ \n"	
 };
 
+//Declaring these outside main causes choppy animations (unknown bug)
 u8 Waterfall_Cycle[] = {
 	2,//Number of palette cycles in the image
 	0,0,18,8,//First cycle: rate (blend speed); invert; First colour; Number of colours;
