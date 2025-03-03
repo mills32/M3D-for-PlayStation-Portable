@@ -774,7 +774,151 @@ M3D_SkinnedActor *M3D_SkinnedActorClone(M3D_SkinnedActor *actorc){
 }
 
 
+void M3D_SkinnedActorRenderMirror(M3D_SkinnedActor* act, u8 axis){
+	AMG_Skinned_Actor* actor = (AMG_Skinned_Actor*)act; 
 
+	// Comprueba si es NULL
+	if(actor == NULL) return;
+	// Control de la iluminación
+	u8 l2 = 0;
+
+	int n_bones = actor->Object[0].n_bones;
+	
+	l2 = sceGuGetStatus(GU_LIGHTING);
+	if((!actor->Object[0].Lighting) && (l2)) sceGuDisable(GU_LIGHTING);
+	if((actor->Object[0].Lighting) && (l2)) sceGuEnable(GU_LIGHTING);
+	//animation
+	int frame,nextframe;
+	float sp;
+	if (actor->Object[0].speed < 0.01){actor->Object[0].interpolation = 0; sp = 0;}
+	else sp = 1/actor->Object[0].speed;
+	
+	if (actor->Object[0].interpolation > 1){
+		if(actor->Object[0].loop){
+			actor->Object[0].interpolation = 0;
+			actor->Object[0].frame++;
+		} else {
+			if (actor->Object[0].frame == actor->Object[0].endFrame)
+				actor->Object[0].interpolation = 1;
+			else {
+				actor->Object[0].interpolation = 0;
+				actor->Object[0].frame++;	
+			}
+		}
+	}
+
+	if(actor->Object[0].loop){
+		if (actor->Object[0].frame == actor->Object[0].endFrame) actor->Object[0].frame = actor->Object[0].startFrame;
+	}
+	
+	frame = actor->Object[0].frame;
+	if (actor->Object[0].speed > 0.01) nextframe = frame+1;
+	else nextframe = frame;
+	
+	if (frame == actor->Object[0].frameCount) frame = actor->Object[0].startFrame;
+	
+	actor->f = actor->Object[0].interpolation;
+	actor->f2 = vfpu_ease_in_out(actor->Object[0].interpolation);
+
+	// Aplica las transformaciones necesarias
+	ScePspFVector3 qpos0 = actor->Object[0].Frame[0].Bone[0].position;
+	actor->qpos1 = (ScePspQuatMatrix){actor->Object[0].Frame[frame].Bone[0].position.x,actor->Object[0].Frame[frame].Bone[0].position.y,actor->Object[0].Frame[frame].Bone[0].position.z,0};
+	actor->qpos2 = (ScePspQuatMatrix){actor->Object[0].Frame[nextframe].Bone[0].position.x,actor->Object[0].Frame[nextframe].Bone[0].position.y,actor->Object[0].Frame[nextframe].Bone[0].position.z,0};
+	
+	if (actor->smooth == 0) 
+		AMG_QuatSampleLinear(&actor->qpos_inter,&actor->qpos1,&actor->qpos2,actor->f);
+	else
+		AMG_QuatSampleLinear(&actor->qpos_inter,&actor->qpos1,&actor->qpos2,actor->f2);
+	float pfix = (actor->qpos_inter.y-qpos0.y);
+	actor->GPos = (ScePspFVector3){actor->Pos.x+actor->qpos_inter.x-qpos0.x,actor->Pos.y+pfix,actor->Pos.z+actor->qpos_inter.z-qpos0.z};
+
+	//Mover
+	AMG_PushMatrix(GU_MODEL);
+	AMG_LoadIdentity(GU_MODEL);
+	AMG_Translate(GU_MODEL,&actor->GPos);
+	AMG_Rotate(GU_MODEL, &actor->Rot);
+	if(actor->Object[0].phys){
+		//vfpu_scale_vector(&GPos,&GPos,2);
+		AMG_UpdateSkinnedActorBody(actor);
+	}
+	AMG_Scale(GU_MODEL, &actor->Scale);
+	
+	ScePspFMatrix4 m0 = {{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}};
+	ScePspFMatrix4 __attribute__((aligned(16))) m1;
+	ScePspFMatrix4 __attribute__((aligned(16))) m2;
+	if (axis == 0){m0.x.x = -1; m0.w.x = amg_curfloor->Pos.x*2;}
+	if (axis == 1){m0.y.y = -1; m0.w.y = amg_curfloor->Pos.y*2;}
+	if (axis == 2){m0.z.z = -1; m0.w.z = amg_curfloor->Pos.z*2;}
+	AMG_GetMatrix(GU_MODEL, &m1);
+	AMG_MultMatrixUser(&m0,&m1,&m2);
+	AMG_SetMatrix(GU_MODEL, &m2);
+	
+	
+	AMG_UpdateMatrices();		// Actualiza las matrices
+if (!skip){	
+	sceGuColorMaterial(GU_DIFFUSE | GU_SPECULAR | GU_AMBIENT);		// Define los componentes materiales a usar
+	sceGuSpecular(AMG.WorldSpecular);	
+	sceGuColor(0xffffffff); sceGuAmbient(0xff000000);
+	u32 number;
+
+	//MUEVE HUESOS
+	int q = 0;
+	for( q = 0; q < n_bones; ++q){
+		//Toma la rotacion y posicion del hueso
+		AMG_LoadIdentityUser(&actor->bones[q]);
+		actor->pos = actor->Object[0].Frame[0].Bone[q].position;
+		actor->pfix = (ScePspFVector3){-actor->pos.x,-actor->pos.y,-actor->pos.z};
+
+		//interpolate quaternion
+		if (actor->smooth == 0) 
+			vfpu_quaternion_sample_linear(&actor->Object[0].Frame[frame].Bone[q].interpolated,&actor->Object[0].Frame[frame].Bone[q].orient,&actor->Object[0].Frame[nextframe].Bone[q].orient,actor->f);
+		else 
+			vfpu_quaternion_sample_linear(&actor->Object[0].Frame[frame].Bone[q].interpolated,&actor->Object[0].Frame[frame].Bone[q].orient,&actor->Object[0].Frame[nextframe].Bone[q].orient,actor->f2);//f2 not working
+		
+		vfpu_quaternion_normalize(&actor->Object[0].Frame[frame].Bone[q].interpolated);
+	
+		//Apply position and rotation to bone matrix
+		AMG_TranslateUser(&actor->bones[q], &actor->pos);
+		AMG_RotateQuatUser(&actor->Object[0].Frame[frame].Bone[q].interpolated, &actor->bones[q]);
+		AMG_TranslateUser(&actor->bones[q], &actor->pfix);
+		
+		//Now apply child bones the rotation of the parents
+		if (q != 0) AMG_MultMatrixUser(&actor->bones[actor->Object[0].Frame[0].Bone[q].parent],&actor->bones[q], &actor->bones[q]);
+	}
+	
+	// setup texture
+	AMG_EnableTexture(actor->Object[0].texture);
+
+	//Draw groups
+	sceGuEnable(GU_CULL_FACE);
+	sceGuFrontFace(GU_CW);
+	sceGuDepthFunc(GU_LESS);
+	sceGuEnable(GU_TEXTURE_2D);
+	int g = 0;
+	//AT LEAST.. DRAW THE STUPID THING
+	for (g = 0; g != actor->Object[0].n_groups; g++){ 
+		//models look very bad  after setting "sceGuDepthFunc(GU_LESS)", 
+		//but it is the only way PSP can cut the model using a plane
+		sceGuColor(0xFF777777); 
+		number = actor->Object[0].Group[g].End - actor->Object[0].Group[g].Start;
+		u32 offset = actor->Object[0].Group[g].Start;
+		//Set bone matrices for every bone in the group... 
+		int b0 = actor->Object[0].Group[g].bones[0];
+		int b1 = actor->Object[0].Group[g].bones[1];
+		sceGuBoneMatrix(0, &actor->bones[b0]);//sceGuMorphWeight( q, 1 );
+		sceGuBoneMatrix(1, &actor->bones[b1]);
+		//sceGuDepthMask(1);
+		//Draw group
+		sceGuDrawArray(GU_TRIANGLES,GU_WEIGHTS(2)|GU_WEIGHT_8BIT|GU_TEXTURE_32BITF|GU_NORMAL_8BIT|GU_VERTEX_32BITF|GU_TRANSFORM_3D,number,0,actor->Object[0].Data+offset);
+		//sceGuDepthMask(0);
+	}
+	sceGuDepthFunc(GU_GEQUAL);
+	sceGuDisable(GU_CULL_FACE);
+}
+    AMG_PopMatrix(GU_MODEL);
+	// Control de la iluminación
+	if((!actor->Object[0].Lighting) && (l2)) sceGuEnable(GU_LIGHTING);
+}
 
 // Borra
 

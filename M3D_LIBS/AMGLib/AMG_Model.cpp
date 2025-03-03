@@ -132,13 +132,20 @@ void AMG_RenderBinaryMesh(AMG_BinaryMesh *mesh, u32 offset){
 	if(mesh == NULL) return;
   if(!skip){	
     AMG_PushMatrix(GU_MODEL);
-	if(mesh->Object[0].Physics == 0){
-		AMG_Translate(GU_MODEL, &mesh->Pos);
+	if (mesh->Object[0].Physics == 0){
+		ScePspFVector3 __attribute__((aligned(16))) N_Origin = (ScePspFVector3){
+			mesh->Pos.x-mesh->Origin.x,
+			mesh->Pos.y-mesh->Origin.y,
+			mesh->Pos.z-mesh->Origin.z
+		};
+		AMG_Translate(GU_MODEL, &mesh->Origin);
 		AMG_Rotate(GU_MODEL, &mesh->Rot);
 		AMG_Scale(GU_MODEL, &mesh->Scale);
+		AMG_Translate(GU_MODEL, &N_Origin);
 	} else {
 		AMG_UpdateBINBody(mesh);
 	}
+	
 	AMG_UpdateMatrices();											// Actualiza las matrices
 	sceGuColorMaterial(GU_DIFFUSE | GU_SPECULAR | GU_AMBIENT);		// Define los componentes materiales a usar
 	sceGuSpecular(AMG.WorldSpecular);	
@@ -1124,7 +1131,7 @@ void M3D_ModelRender(M3D_Model *model, int transparent){
 
 // Renderiza un objeto 3D
 void AMG_RenderObject(AMG_Object *model, u8 cs, int transparent){
-	if (transparent <0 && transparent >3) transparent=0;
+	if (transparent <0 && transparent >6) transparent=0;
 	// Comprueba si es NULL
 	if(model == NULL) return;
 	// Control de la iluminación
@@ -1141,13 +1148,31 @@ void AMG_RenderObject(AMG_Object *model, u8 cs, int transparent){
 
 	//If no bullet, just apply position and rotation defined by user
 	if (model->Physics == 0){
-		AMG_Translate(GU_MODEL, &model->Pos);
-		//AMG_Translate(GU_MODEL, &model->Origin);
+		ScePspFVector3 __attribute__((aligned(16))) N_Origin = (ScePspFVector3){
+			model->Pos.x-model->Origin.x,
+			model->Pos.y-model->Origin.y,
+			model->Pos.z-model->Origin.z
+		};
+		AMG_Translate(GU_MODEL, &model->Origin);
+		AMG_Scale(GU_MODEL, &model->Scale);
 		AMG_Rotate(GU_MODEL, &model->Rot);
+		AMG_Translate(GU_MODEL, &N_Origin);
 	}
-	//If has bullet physics, apply position and rotation from bullet physics
+	//If has bullet physics
 	else AMG_UpdateBody(model);
-	AMG_Scale(GU_MODEL, &model->Scale);
+	//If reflected
+	if(transparent>3) {
+		ScePspFMatrix4 m0 = {{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}};
+		ScePspFMatrix4 __attribute__((aligned(16))) m1;
+		ScePspFMatrix4 __attribute__((aligned(16))) m2;
+		if (transparent == 4){m0.x.x = -1; m0.w.x = amg_curfloor->Pos.x*2;}
+		if (transparent == 5){m0.y.y = -1; m0.w.y = amg_curfloor->Pos.y*2;}
+		if (transparent == 6){m0.z.z = -1; m0.w.z = amg_curfloor->Pos.z*2;}
+		AMG_GetMatrix(GU_MODEL, &m1);
+		AMG_MultMatrixUser(&m0,&m1,&m2);
+		AMG_SetMatrix(GU_MODEL, &m2);
+	}
+
 	//model->Origin.x = -model->Origin.x; model->Origin.y = -model->Origin.y; model->Origin.z = -model->Origin.z;
 	//AMG_Translate(GU_MODEL, &model->Origin);
 	//model->Origin.x = -model->Origin.x; model->Origin.y = -model->Origin.y; model->Origin.z = -model->Origin.z;
@@ -1204,18 +1229,27 @@ void AMG_RenderObject(AMG_Object *model, u8 cs, int transparent){
 				sceGuDrawArray(Render_Style, model->Flags, nfaces*3, 0, (void*)&(((u8*)model->Data)[model->Group[i].Start*model->TriangleSize]));
 				sceGuDepthMask(0);//Enable Z buffer writes
 			break;
-			case 3: //solo para renderizar objectos reflejados
-				sceGuStencilFunc(GU_EQUAL,0xFF, 1);
-				sceGuStencilOp(GU_KEEP, GU_KEEP, GU_KEEP);
+			case 3: //solo para renderizar el objeto que hace de espejo
+				sceGuColor(0x99FFFFFF);
+				sceGuEnable(GU_CULL_FACE);
+				sceGuFrontFace(GU_CCW);
+				sceGuDrawArray(Render_Style, model->Flags  , nfaces*3, 0,(void*)&(((u8*)model->Data)[model->Group[i].Start*model->TriangleSize]));					
+			break;
+			case 4: 
+			case 5:
+			case 6:
+				//It wass impossible to remove issues here. I tried Stencil, color operations... nothing. 
+				//Commercial games must be doing some kind of software clipping
 				sceGuEnable(GU_CULL_FACE);
 				sceGuFrontFace(GU_CW);
-				sceGuColor(0x66FFFFFF);
+				if((model->Lighting) && (l2)) sceGuEnable(GU_LIGHTING);
+				sceGuEnable(GU_TEXTURE_2D);
+				sceGuDepthFunc(GU_LESS);
+				//I had no other option if I wanted the models to be able to touch the surface
+				//sceGuDepthMask(1);
 				sceGuDrawArray(Render_Style, model->Flags, nfaces*3, 0,(void*)&(((u8*)model->Data)[model->Group[i].Start*model->TriangleSize]));	
-			break;
-			case 4: //solo para renderizar el objeto que hace de espejo
-				sceGuDepthMask(1);//Disable Z buffer writes
-				sceGuDrawArray(Render_Style, model->Flags, nfaces*3, 0,(void*)&(((u8*)model->Data)[model->Group[i].Start*model->TriangleSize]));					
-				sceGuDepthMask(0);//Enable Z buffer writes
+				//sceGuDepthMask(0);
+				sceGuDepthFunc(GU_GEQUAL);
 			break;
 		}
 		if(model->Group[i].Texture != NULL){
@@ -1266,6 +1300,7 @@ void AMG_RenderObject(AMG_Object *model, u8 cs, int transparent){
 			sceGuDrawArray(Render_Style, model->Flags, nfaces*3, 0, (void*)&(((u8*)model->Data)[model->Group[i].Start*model->TriangleSize]));
 			sceGuDisable(GU_COLOR_LOGIC_OP);
 			sceGuDepthFunc(GU_GEQUAL);//restore depth function
+			sceGuEnable(GU_LIGHTING);
 		}
 		//sceGuEndObject();
 	}
@@ -1302,6 +1337,7 @@ void M3D_ModelSetPosition(M3D_Model* m,int obj,float x, float y, float z){
 	if (x) model->Object[obj].Pos.x = x;
 	if (y) model->Object[obj].Pos.y = y;
 	if (z) model->Object[obj].Pos.z = z;
+	model->Object[obj].Origin = model->Object[obj].Pos;
 }
 
 ScePspFVector3 M3D_ModelGetPosition(M3D_Model* m,int obj){
@@ -1332,6 +1368,7 @@ void M3D_ModelTranslate(M3D_Model* m,int obj,float x, float y, float z){
 	model->Object[obj].Pos.x += x;
 	model->Object[obj].Pos.y += y;
 	model->Object[obj].Pos.z += z;
+	model->Object[obj].Origin = model->Object[obj].Pos;
 }
 
 void M3D_ModelRotate(M3D_Model* m,int obj,float x, float y, float z){
@@ -1354,6 +1391,11 @@ void M3D_ModelResetPosition(M3D_Model* m,int obj){
 void M3D_ModelResetRotation(M3D_Model* m,int obj){
 	AMG_Model *model = (AMG_Model*)m;
 	model->Object[obj].Rot = (ScePspFVector3) {0,0,0};
+}
+
+void M3D_ModelSetOrigin(M3D_Model* m,int obj_number,float x, float y, float z){
+	AMG_Model *model = (AMG_Model*)m;
+	model->Object[obj_number].Origin = (ScePspFVector3) {x,y,z};
 }
 
 void M3D_ModelScrollTexture(M3D_Model* m,int obj_number,int group_number,float x, float y){
@@ -1385,6 +1427,12 @@ void M3D_ModelBINSetRotation(M3D_ModelBIN* m,float rx, float ry, float rz){
 	model->Rot.y = M3D_Deg2Rad(ry);
 	model->Rot.z = M3D_Deg2Rad(rz);
 }
+
+void M3D_ModelBINSetOrigin(M3D_ModelBIN* m,float ox, float oy, float oz){
+	AMG_BinaryMesh *model = (AMG_BinaryMesh*)m;
+	model->Origin = (ScePspFVector3) {ox,oy,oz};
+}
+
 
 void M3D_ModelBINTranslate(M3D_ModelBIN* m,float dx, float dy, float dz){
 	AMG_BinaryMesh *model = (AMG_BinaryMesh *)m;
@@ -1588,65 +1636,45 @@ void AMG_NormalizeModel(AMG_Model *model){
 	}
 }
 
-// Renderiza un objeto (mirror)
-void AMG_RenderMirrorObject(AMG_Model *model, u8 number, u8 axis){
+// Render object (mirror)
+void AMG_RenderMirrorObject(AMG_Model *model, u8 number, u8 light, u8 axis){
     AMG_Object *obj = &model->Object[number];
-	// Cuidado con la iluminacion
 	if(obj == NULL) return;
-	u8 l = sceGuGetStatus(GU_LIGHTING);
-	sceGuDisable(GU_LIGHTING);
-	// Guarda valores temporales
-	ScePspFVector3 tmp_pos, tmp_scl, tmp_rot;
-	tmp_pos.x = obj->Pos.x; tmp_pos.y = obj->Pos.y; tmp_pos.z= obj->Pos.z;
-	tmp_scl.x = obj->Scale.x; tmp_scl.y = obj->Scale.y; tmp_scl.z= obj->Scale.z;
-	tmp_rot.x = obj->Rot.x; tmp_rot.y = obj->Rot.y; tmp_rot.z= obj->Rot.z;
-	// Cambia la posición
-	float d = 0.0f;		// Distancia del objeto al suelo
+	//store
+	ScePspFVector3 tmp_lgt = (ScePspFVector3){AMG_Light[light].Pos.x,AMG_Light[light].Pos.y,AMG_Light[light].Pos.z};
+	ScePspFVector3 lpos;
+	// scale and invert light
 	switch(axis){
-		case 0:			// Eje X
-			d = ((obj->Origin.x + obj->Pos.x) - (amg_curfloor->Origin.x + amg_curfloor->Pos.x));
-			obj->Pos.x -= (d * 2.0f);
-			obj->Scale.x = -obj->Scale.x;
-			obj->Rot.y = -obj->Rot.z;
-			obj->Rot.z = -obj->Rot.z;
+		case 0:			// X
+			lpos = (ScePspFVector3){-1*tmp_lgt.x,tmp_lgt.y,tmp_lgt.z};
+			sceGuLight(light, AMG_Light[light].Type, AMG_Light[light].Component, &lpos);
 			break;
-		case 1:			// Eje Y
-			d = ((obj->Origin.y + obj->Pos.y) - (amg_curfloor->Origin.y + amg_curfloor->Pos.y));
-			obj->Pos.y -= (d * 2.0f);
-			obj->Scale.y = -obj->Scale.y;
-			obj->Rot.x = -obj->Rot.x;
-			obj->Rot.z = -obj->Rot.z;
+		case 1:			// Y
+			lpos = (ScePspFVector3){tmp_lgt.x,-1*tmp_lgt.y,tmp_lgt.z};
+			sceGuLight(light, AMG_Light[light].Type, AMG_Light[light].Component, &lpos);
 			break;
-		case 2:			// Eje Z
-			d = ((obj->Origin.z + obj->Pos.z) - (amg_curfloor->Origin.z + amg_curfloor->Pos.z));
-			obj->Pos.z -= (d * 2.0f);
-			obj->Scale.z = -obj->Scale.z;
-			obj->Rot.x = -obj->Rot.x;
-			obj->Rot.y = -obj->Rot.y;
+		case 2:			// Z
+			lpos = (ScePspFVector3){tmp_lgt.x,tmp_lgt.y,-1*tmp_lgt.z};
+			sceGuLight(light, AMG_Light[light].Type, AMG_Light[light].Component, &lpos);
 			break;
 		default: return;
 	}
-	// Renderiza el objeto
-	AMG_RenderObject(obj, 0, 3);
-	obj->Pos = tmp_pos;
-	obj->Scale = tmp_scl; 
-	obj->Rot = tmp_rot; 
-	if(l) sceGuEnable(GU_LIGHTING);
+	// Render
+	axis+=4;
+	AMG_RenderObject(obj, 0, axis);
+	//reset light
+	sceGuLight(light, AMG_Light[light].Type, AMG_Light[light].Component, &tmp_lgt);
 }
 
-void M3D_ModelRenderMirror(M3D_Model *model, u8 number, u8 axis){
-	AMG_RenderMirrorObject((AMG_Model*)model,number,axis);
+void M3D_ModelRenderMirror(M3D_Model *model, u8 number, u8 light, u8 axis){
+	AMG_RenderMirrorObject((AMG_Model*)model,number,light,axis);
 }
 
 // Comienza el motor de reflejos
 void AMG_StartReflection(AMG_Model *model, u8 number){
 	AMG_Object *obj = &model->Object[number];
-	sceGuEnable(GU_STENCIL_TEST);
-	sceGuClear(GU_STENCIL_BUFFER_BIT);
-	sceGuStencilFunc(GU_ALWAYS,0xFF, 1);
-	sceGuStencilOp(GU_KEEP, GU_KEEP, GU_REPLACE);
 	
-	AMG_RenderObject(obj, 0, 4);
+	AMG_RenderObject(obj, 0, 0);
 
 	amg_curfloor = obj;
 }
@@ -1657,23 +1685,23 @@ void M3D_StartReflection(M3D_Model *model, u8 number){
 
 // Termina el motor de reflejos
 void AMG_FinishReflection(){
-	sceGuDisable(GU_STENCIL_TEST);
-	sceGuClear(GU_STENCIL_BUFFER_BIT);
-	//sceGuEnable(GU_BLEND);
+	
 	sceGuBlendFunc(GU_MAX ,GU_SRC_COLOR, GU_FIX, 0x22222222,0);
-	AMG_RenderObject(amg_curfloor, 0, 0);
+	AMG_RenderObject(amg_curfloor, 0, 3);
 	sceGuBlendFunc(GU_ADD , GU_SRC_ALPHA, GU_ONE_MINUS_SRC_ALPHA, 0, 0);
 	//sceGuDisable(GU_BLEND);
 }
 
 void M3D_FinishReflection(){
-	sceGuDisable(GU_STENCIL_TEST);
-	sceGuClear(GU_STENCIL_BUFFER_BIT);
+	//sceGuDisable(GU_STENCIL_TEST);
+	//sceGuClear(GU_STENCIL_BUFFER_BIT);
 	//sceGuEnable(GU_BLEND);
-	sceGuBlendFunc(GU_ADD ,GU_SRC_COLOR, GU_ONE_MINUS_SRC_COLOR, 0,0x66FFFFFF);
-	AMG_RenderObject(amg_curfloor, 0, 0);
-	sceGuBlendFunc(GU_ADD , GU_SRC_ALPHA, GU_ONE_MINUS_SRC_ALPHA, 0, 0);
+	sceGuTexFunc(GU_TFX_REPLACE,GU_TCC_RGBA);
+	//sceGuBlendFunc(GU_ADD ,GU_SRC_COLOR, GU_ONE_MINUS_SRC_COLOR, 0,0x66FFFFFF);
+	AMG_RenderObject(amg_curfloor, 0, 3);
+	//sceGuBlendFunc(GU_ADD , GU_SRC_ALPHA, GU_ONE_MINUS_SRC_ALPHA, 0, 0);
 	//sceGuDisable(GU_BLEND);
+	sceGuTexFunc(GU_TFX_MODULATE,GU_TCC_RGBA);
 }
 
 
@@ -2047,10 +2075,10 @@ void AMG_RenderModelShadow(AMG_Object *caster){
 	if (!skip){
 	AMG_PushMatrix(GU_MODEL);
 	AMG_Translate(GU_MODEL, &caster->Pos);
-	AMG_Translate(GU_MODEL, &caster->Origin);
+	//AMG_Translate(GU_MODEL, &caster->Origin);
 	AMG_Rotate(GU_MODEL, &caster->Rot);
 	AMG_Scale(GU_MODEL, &caster->Scale);
-	AMG_Translate(GU_MODEL, &caster->Origin);
+	//AMG_Translate(GU_MODEL, &caster->Origin);
 	AMG_UpdateMatrices();
 	
 	sceGuColor(0xFF000000);
@@ -2085,10 +2113,10 @@ void AMG_RenderVehicleShadow(AMG_Object *caster){
 	if (!skip){
 	AMG_PushMatrix(GU_MODEL);
 	AMG_Translate(GU_MODEL, &caster->Pos);
-	AMG_Translate(GU_MODEL, &caster->Origin);
+	//AMG_Translate(GU_MODEL, &caster->Origin);
 	AMG_RotateQuat(GU_MODEL, &caster->VehicleRotation);
 	AMG_Scale(GU_MODEL, &caster->Scale);
-	AMG_Translate(GU_MODEL, &caster->Origin);
+	//AMG_Translate(GU_MODEL, &caster->Origin);
 	AMG_UpdateMatrices();
 
 	sceGuColor(0xFF000000);

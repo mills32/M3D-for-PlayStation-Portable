@@ -325,6 +325,7 @@ void M3D_ModelRotate(M3D_Model* m,int obj,float x, float y, float z);
 void M3D_ModelSetScale(M3D_Model* m,int obj,float x, float y, float z);
 void M3D_ModelResetPosition(M3D_Model* m,int obj);
 void M3D_ModelResetRotation(M3D_Model* m,int obj);
+void M3D_ModelSetOrigin(M3D_Model* m,int obj_number,float x, float y, float z);
 void M3D_ModelScrollTexture(M3D_Model* m,int obj_number,int group_number,float x, float y);
 M3D_Model *M3D_ModelClone(M3D_Model *m);
 
@@ -336,7 +337,7 @@ void M3D_ModelSetLighting(M3D_Model* m,int obj_number, u8 light);
 void M3D_ModelSetOcclusion(M3D_Model* m,int obj,int value);
 
 void M3D_StartReflection(M3D_Model *model, u8 number);
-void M3D_ModelRenderMirror(M3D_Model *model, u8 number, u8 axis);
+void M3D_ModelRenderMirror(M3D_Model *model, u8 number, u8 light, u8 axis);
 void M3D_FinishReflection();
 
 void M3D_DrawSkyBox(M3D_Model *model,float fov);
@@ -345,6 +346,7 @@ void M3D_ModelBINSetPosition(M3D_ModelBIN* m,float x, float y, float z);
 void M3D_ModelBINSetRotation(M3D_ModelBIN* m,float rx, float ry, float rz);
 void M3D_ModelBINTranslate(M3D_ModelBIN* m,float dx, float dy, float dz);
 void M3D_ModelBINRotate(M3D_ModelBIN* m,float drx, float dry, float drz);
+void M3D_ModelBINSetOrigin(M3D_ModelBIN* m,float ox, float oy, float oz);
 void M3D_ModelBINScrollTexture(M3D_ModelBIN* m,float du, float dv);
 
 
@@ -362,6 +364,7 @@ M3D_SkinnedActor *M3D_SkinnedActorClone(M3D_SkinnedActor *actorc);
 void M3D_CameraFollowSkinnedActor(M3D_Camera *cam, M3D_SkinnedActor *act, float y, float max);
 ScePspFVector3 M3D_SkinnedActorGetPos(M3D_SkinnedActor *actor);
 //void M3D_SkinnedActorSetOcclusion(M3D_SkinnedActor *act,int value);
+void M3D_SkinnedActorRenderMirror(M3D_SkinnedActor* act, u8 axis);
 
 //MORPHING MODELS
 M3D_MorphingActor *M3D_LoadMorphingActor(const char *path, float outline, u32 psm);

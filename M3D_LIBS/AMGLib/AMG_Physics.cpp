@@ -481,34 +481,36 @@ void AMG_UpdateBody(AMG_Object *model){
 	//If rigid body 
 	if (obj->type == 0){
 		obj->Body->activate();
-		center = obj->Body->getWorldTransform().getOrigin();
-		memcpy(&pos,&model->Pos,sizeof(btVector3));
-		memcpy(&model->Pos,&center,sizeof(ScePspFVector3));
-		model->Pos.x = (float)center[0];
-		model->Pos.y = (float)center[1];
-		model->Pos.z = (float)center[2];
-		q = obj->Body->getOrientation();
-		q2.x = q[0]; q2.y = q[1]; q2.z = q[2]; q2.w = -q[3];//WHY!!! -q[3] ? two days to realize
-		AMG_Translate(GU_MODEL, &model->Pos);
-		if (model->Mass != 0)AMG_RotateQuat(GU_MODEL,&q2);
-		else {
+		btVector3 __attribute__((aligned(16))) N_Origin;
+		N_Origin[0] = model->Pos.x-model->Origin.x;
+		N_Origin[1] = model->Pos.y-model->Origin.y;
+		N_Origin[2] = model->Pos.z-model->Origin.z;
+		if (model->Mass != 0){
+			center = obj->Body->getWorldTransform().getOrigin();
+			memcpy(&model->Pos,&center,sizeof(ScePspFVector3));
+			q = obj->Body->getOrientation();
+			q2.x = q[0]; q2.y = q[1]; q2.z = q[2]; q2.w = -q[3];//WHY!!! -q[3] ? two days to realize
+			AMG_Translate(GU_MODEL, &model->Pos);
+			AMG_RotateQuat(GU_MODEL,&q2);
+		} else {
+			//memcpy(&pos,&model->Pos,sizeof(btVector3));
 			//Get rotation values from user
 			qe.setEuler(model->Rot.y,model->Rot.x,model->Rot.z);
-			memcpy(&q3,&qe,sizeof(ScePspQuatMatrix));
+			//Convert rotation and position to a matrix
+			ScePspFMatrix4 __attribute__((aligned(16))) matrix;
+			gumLoadIdentity(&matrix);
+			AMG_TranslateUser(&matrix, &model->Origin);
+			AMG_RotateUser(&matrix,&model->Rot);
+			AMG_TranslateUser(&matrix,(ScePspFVector3*)&N_Origin);
 			//set rotation to body
-			obj->Body->getWorldTransform().setRotation(qe);
-			//set position to body
-			obj->Body->getWorldTransform().setOrigin(pos);
+			obj->Body->getWorldTransform().setFromOpenGLMatrix((float*)&matrix);
 			//Set rotation to model
-			q3.w = -q3.w;
-			AMG_RotateQuat(GU_MODEL,&q3);
+			qe[3] = -qe[3];
+			AMG_Translate(GU_MODEL, &model->Origin);
+			AMG_RotateQuat(GU_MODEL,(ScePspQuatMatrix*)&qe);
+			AMG_Translate(GU_MODEL,(ScePspFVector3*)&N_Origin);
 		}
 	}
-	//Reset collisions
-	//model->Collision = false;
-	//model->CollidedWith = 0;
-	//obj->md->Collision = 0;
-	//obj->md->CollidedWith = 0xFFFF;
 }
 
 void AMG_UpdateBINBody(AMG_BinaryMesh *model){
@@ -520,24 +522,26 @@ void AMG_UpdateBINBody(AMG_BinaryMesh *model){
 	amg_mdh *obj = &amg_model_ptr[model->Object[0].bullet_id];
 
 	obj->Body->activate();
-	memcpy(&pos,&model->Pos,sizeof(btVector3));
-	AMG_Translate(GU_MODEL, &model->Pos);
+	//memcpy(&pos,&model->Pos,sizeof(btVector3));
+	btVector3 __attribute__((aligned(16))) N_Origin;
+	N_Origin[0] = model->Pos.x-model->Origin.x;
+	N_Origin[1] = model->Pos.y-model->Origin.y;
+	N_Origin[2] = model->Pos.z-model->Origin.z;
 	//Get rotation values from user
 	qe.setEuler(model->Rot.y,model->Rot.x,model->Rot.z);
-	memcpy(&q3,&qe,sizeof(ScePspQuatMatrix));
+	//Convert rotation and position to a matrix
+	ScePspFMatrix4 __attribute__((aligned(16))) matrix;
+	gumLoadIdentity(&matrix);
+	AMG_TranslateUser(&matrix, &model->Origin);
+	AMG_RotateUser(&matrix,&model->Rot);
+	AMG_TranslateUser(&matrix,(ScePspFVector3*)&N_Origin);
 	//set rotation to body
-	obj->Body->getWorldTransform().setRotation(qe);
-	//set position to body
-	obj->Body->getWorldTransform().setOrigin(pos);
+	obj->Body->getWorldTransform().setFromOpenGLMatrix((float*)&matrix);
 	//Set rotation to model
-	q3.w = -q3.w;
-	AMG_RotateQuat(GU_MODEL,&q3);
-
-	//Reset collisions
-	//model->Collision = false;
-	//model->CollidedWith = 0;
-	//obj->md->Collision = 0;
-	//obj->md->CollidedWith = 0xFFFF;
+	qe[3] = -qe[3];
+	AMG_Translate(GU_MODEL, &model->Origin);
+	AMG_RotateQuat(GU_MODEL,(ScePspQuatMatrix*)&qe);
+	AMG_Translate(GU_MODEL,(ScePspFVector3*)&N_Origin);
 }
 
 void AMG_UpdateSkinnedActorBody(AMG_Skinned_Actor *actor){
