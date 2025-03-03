@@ -83,7 +83,9 @@ any linux distrubution. If you use mac, I can't help you.
 For more advance modifications, just modify and compile AMG, OSL and BULLET.  
   
 AMG code is a bit messy, but it is not very complex, I hope someone can find it useful, at least to learn how to use the skinned / morphing models.  
-  
+
+I tested on a real PSP, PSVITA and PPSSPP emulator, and everything seems to work perfectly fine. PSVITA emulation (at least the functions I used here) is very accurate.
+The only thing not working on PSVITA is the h264 decoder, it looks like they only implemented a simple version for in game PMF videos.
    
 ## CREATE ASSETS
 
