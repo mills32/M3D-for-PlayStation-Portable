@@ -8,7 +8,8 @@ PSP_HEAP_SIZE_KB(-1024);
 
 int main(){
 
-    M3D_Init(COLOR_8888,0);
+    M3D_Init(COLOR_4444,0);
+	M3D_DITHER(1);
 	M3D_LightSet(0, M3D_LIGHT_DIRECTIONAL,RGBA(255,255,255,255),RGBA(200,200,200,255),RGBA(80,80,80,255));
 	M3D_LightSetPosition(0, 1,1,1);
     M3D_Camera *camera = M3D_CameraInit();
@@ -41,7 +42,7 @@ int main(){
 	M3D_SkinnedActorConfig(A[4],1,9,20,1,0);
 	
 	Model = 0;
-
+	float pos_y = 0;
 	while(1){
 	    M3D_updateScreen(0x66666666);
 		M3D_CameraSet(camera);
@@ -51,12 +52,13 @@ int main(){
 		//Draw Skinned models
 		if (Model != 5){
 			if (Model == 4) M3D_SkinnedActorSetPosition(A[Model],0,1,0);
-			else M3D_SkinnedActorSetPosition(A[Model],0,0,0);
-			
-			M3D_StartReflection(Mirror,0);
-				M3D_SkinnedActorRenderMirror(A[Model],1);
-			M3D_FinishReflection();
-			
+			else {M3D_SkinnedActorSetPosition(A[Model],0,0,0);
+				M3D_ModelSetPosition(Mirror,0,0,0,0);
+				M3D_SkinnedActorSetPosition(A[Model],0,M3D_Sin(pos_y+=0.04)/2,0);
+				M3D_StartReflection(Mirror,0);
+					M3D_SkinnedActorRenderMirror(A[Model],1);
+				M3D_FinishReflection();
+			}
 			M3D_SkinnedActorRender(A[Model]);
 		}
 		

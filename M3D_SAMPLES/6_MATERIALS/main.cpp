@@ -39,8 +39,8 @@ char info[][128] = {
 u8 custom_texture_animation[] = {12, 0,1,2,3,4,5,6,7,8,9,10,11};
 
 int main(){
-	M3D_Init(COLOR_5551,0);
-	
+	M3D_Init(COLOR_4444,0);
+	M3D_DITHER(1);
 	M3D_Texture *Font0 = M3D_GetFont(0);
 	M3D_Texture *Font1 = M3D_GetFont(1);
 	
@@ -63,8 +63,8 @@ int main(){
 	M3D_Texture *Shine = M3D_LoadTexture("files/20_shine.png",0,COLOR_4444);
 	M3D_TextureSetMapping(Shine,M3D_ENVIRONMENT_MAP, 1, 2);
 	
-	M3D_Model *Reflected = M3D_LoadModelPLY("Files/cube.ply",0,COLOR_4444);
-	M3D_Model *Mirror = M3D_LoadModelPLY("Files/mirror.ply",0,COLOR_4444);
+	M3D_Model *Reflected = M3D_LoadModelPLY("Files/cube.ply",0.01,COLOR_T4);
+	M3D_Model *Mirror = M3D_LoadModelPLY("Files/mirror.ply",0,COLOR_T4);
 	
 	M3D_Model *Models[28];
 	
@@ -132,9 +132,8 @@ int main(){
 		M3D_LightEnable(0);
 			if (model_number == 25){
 				M3D_CameraSetPosition(camera,0,2,6);
-				M3D_ModelSetPosition(Reflected,0,0,1/*M3D_fabsf(M3D_Sin(bounce+=0.03)/2)*/,0);
 				M3D_ModelSetOrigin(Reflected,0,0,0,0);
-				M3D_ModelRotate(Reflected,0,0,0,0.2);
+				M3D_ModelRotate(Reflected,0,0.2,-0.3,0.6);
 				M3D_ModelSetPosition(Mirror,0,0,-0.4,0);
 				M3D_StartReflection(Mirror,0);
 					M3D_ModelRenderMirror(Reflected,0,0,1);
