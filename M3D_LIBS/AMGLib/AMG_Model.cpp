@@ -1230,26 +1230,21 @@ void AMG_RenderObject(AMG_Object *model, u8 cs, int transparent){
 				sceGuDepthMask(0);//Enable Z buffer writes
 			break;
 			case 3: //solo para renderizar el objeto que hace de espejo
-				sceGuColor(0x99FFFFFF);
 				sceGuEnable(GU_CULL_FACE);
 				sceGuFrontFace(GU_CCW);
+				sceGuColor(0x99ffffff);
 				sceGuDrawArray(Render_Style, model->Flags  , nfaces*3, 0,(void*)&(((u8*)model->Data)[model->Group[i].Start*model->TriangleSize]));					
 			break;
 			case 4: 
 			case 5:
 			case 6:
-				//It wass impossible to remove issues here. I tried Stencil, color operations... nothing. 
-				//Commercial games must be doing some kind of software clipping
 				sceGuEnable(GU_CULL_FACE);
 				sceGuFrontFace(GU_CW);
-				if((model->Lighting) && (l2)) sceGuEnable(GU_LIGHTING);
-				sceGuEnable(GU_TEXTURE_2D);
-				sceGuDepthFunc(GU_LESS);
-				//I had no other option if I wanted the models to be able to touch the surface
-				//sceGuDepthMask(1);
+				//draw if stencil is zero, do not mask writes (0xff)
+				sceGuStencilFunc(GU_EQUAL,0, 0xFF);
+				sceGuStencilOp(GU_KEEP, GU_KEEP, GU_KEEP); //Do not change stencil
+				//draw
 				sceGuDrawArray(Render_Style, model->Flags, nfaces*3, 0,(void*)&(((u8*)model->Data)[model->Group[i].Start*model->TriangleSize]));	
-				//sceGuDepthMask(0);
-				sceGuDepthFunc(GU_GEQUAL);
 			break;
 		}
 		if(model->Group[i].Texture != NULL){
@@ -1274,7 +1269,7 @@ void AMG_RenderObject(AMG_Object *model, u8 cs, int transparent){
 		
 		//sceGuBeginObject(GU_VERTEX_32BITF,nfaces*3,0,model->OutLine); 
 		// Dibuja la parte Cel-Shading (el outline)
-		if(model->OutLine){
+		if(model->OutLine && transparent < 3){
 			AMG_Light[2].Pos.x = AMG_Light[3].Pos.y = 1.0f;		// Configura la matriz del envmap
 			sceGuDisable(GU_TEXTURE_2D);
 			l = sceGuGetStatus(GU_LIGHTING);
@@ -1673,9 +1668,14 @@ void M3D_ModelRenderMirror(M3D_Model *model, u8 number, u8 light, u8 axis){
 // Comienza el motor de reflejos
 void AMG_StartReflection(AMG_Model *model, u8 number){
 	AMG_Object *obj = &model->Object[number];
-	
+	sceGuClearStencil(0xff);//set all framebuffer stencil to max
+	sceGuClear(GU_STENCIL_BUFFER_BIT);
+	sceGuEnable(GU_STENCIL_TEST);
+	sceGuStencilFunc(GU_ALWAYS,0xFF, 0xFF);//draw always do not mask writes
+	sceGuStencilOp(GU_KEEP,GU_KEEP,GU_ZERO);//replace stencil with ZERO if z does not fail
+	sceGuDepthMask(1);//Do not write z depth
 	AMG_RenderObject(obj, 0, 0);
-
+	sceGuDepthMask(0);
 	amg_curfloor = obj;
 }
 
@@ -1693,14 +1693,38 @@ void AMG_FinishReflection(){
 }
 
 void M3D_FinishReflection(){
-	//sceGuDisable(GU_STENCIL_TEST);
-	//sceGuClear(GU_STENCIL_BUFFER_BIT);
+	sceGuEnable(GU_BLEND);
+	//sceGuTexFunc(GU_TFX_REPLACE,GU_TCC_RGBA);
+	//Draw again the mirror, now invert stencil values. The reflected object may be on top 
+	//of the mirror, doing this we mark that part with stencil = 1
+	//sceGuEnable(GU_COLOR_LOGIC_OP);
+	//sceGuLogicalOp(GU_AND);//And color (keep the color)
+	sceGuStencilFunc(GU_ALWAYS,0xFF, 0xFF);//draw always do not mask writes
+	sceGuStencilOp(GU_INVERT,GU_INVERT,GU_KEEP);
+	AMG_RenderObject(amg_curfloor, 0, 3);
+	//sceGuDisable(GU_COLOR_LOGIC_OP);
+	
+	//We draw again the mirror, and delete the pixels of the reflection which were drawn 
+	//on top of it
+	sceGuDepthFunc(GU_ALWAYS);
+	sceGuStencilFunc(GU_EQUAL,0xFF, 0xFF);//draw always do not mask writes
+	sceGuStencilOp(GU_KEEP,GU_KEEP,GU_KEEP);//replace stencil with max if z fails
+	AMG_RenderObject(amg_curfloor, 0, 0);
+	sceGuDepthFunc(GU_GEQUAL);
+	
+	sceGuDisable(GU_STENCIL_TEST);
+	sceGuClearStencil(0);
+	sceGuClear(GU_STENCIL_BUFFER_BIT);
+	/*
+	sceGuColor(0x99FFFFFF);
+	AMG_RenderObject(amg_curfloor, 0, 0);*/
+	
 	//sceGuEnable(GU_BLEND);
-	sceGuTexFunc(GU_TFX_REPLACE,GU_TCC_RGBA);
+	/*sceGuTexFunc(GU_TFX_REPLACE,GU_TCC_RGBA);
 	//sceGuBlendFunc(GU_ADD ,GU_SRC_COLOR, GU_ONE_MINUS_SRC_COLOR, 0,0x66FFFFFF);
 	AMG_RenderObject(amg_curfloor, 0, 3);
 	//sceGuBlendFunc(GU_ADD , GU_SRC_ALPHA, GU_ONE_MINUS_SRC_ALPHA, 0, 0);
-	//sceGuDisable(GU_BLEND);
+	//sceGuDisable(GU_BLEND);*/
 	sceGuTexFunc(GU_TFX_MODULATE,GU_TCC_RGBA);
 }
 

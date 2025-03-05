@@ -787,6 +787,29 @@ void M3D_SkinnedActorRenderMirror(M3D_SkinnedActor* act, u8 axis){
 	l2 = sceGuGetStatus(GU_LIGHTING);
 	if((!actor->Object[0].Lighting) && (l2)) sceGuDisable(GU_LIGHTING);
 	if((actor->Object[0].Lighting) && (l2)) sceGuEnable(GU_LIGHTING);
+	
+	//store light
+	u8 light = 0;
+	ScePspFVector3 tmp_lgt = (ScePspFVector3){AMG_Light[light].Pos.x,AMG_Light[light].Pos.y,AMG_Light[light].Pos.z};
+	ScePspFVector3 lpos;
+	// scale and invert light
+	switch(axis){
+		case 0:			// X
+			lpos = (ScePspFVector3){-1*tmp_lgt.x,tmp_lgt.y,tmp_lgt.z};
+			sceGuLight(light, AMG_Light[light].Type, AMG_Light[light].Component, &lpos);
+			break;
+		case 1:			// Y
+			lpos = (ScePspFVector3){tmp_lgt.x,-1*tmp_lgt.y,tmp_lgt.z};
+			sceGuLight(light, AMG_Light[light].Type, AMG_Light[light].Component, &lpos);
+			break;
+		case 2:			// Z
+			lpos = (ScePspFVector3){tmp_lgt.x,tmp_lgt.y,-1*tmp_lgt.z};
+			sceGuLight(light, AMG_Light[light].Type, AMG_Light[light].Component, &lpos);
+			break;
+		default: return;
+	}
+	// Render
+
 	//animation
 	int frame,nextframe;
 	float sp;
@@ -892,14 +915,10 @@ if (!skip){
 	//Draw groups
 	sceGuEnable(GU_CULL_FACE);
 	sceGuFrontFace(GU_CW);
-	sceGuDepthFunc(GU_LESS);
 	sceGuEnable(GU_TEXTURE_2D);
 	int g = 0;
 	//AT LEAST.. DRAW THE STUPID THING
 	for (g = 0; g != actor->Object[0].n_groups; g++){ 
-		//models look very bad  after setting "sceGuDepthFunc(GU_LESS)", 
-		//but it is the only way PSP can cut the model using a plane
-		sceGuColor(0xFF777777); 
 		number = actor->Object[0].Group[g].End - actor->Object[0].Group[g].Start;
 		u32 offset = actor->Object[0].Group[g].Start;
 		//Set bone matrices for every bone in the group... 
@@ -909,15 +928,20 @@ if (!skip){
 		sceGuBoneMatrix(1, &actor->bones[b1]);
 		//sceGuDepthMask(1);
 		//Draw group
+		//draw if stencil is zero, do not mask writes (0xff)
+		sceGuStencilFunc(GU_EQUAL,0, 0xFF);
+		sceGuStencilOp(GU_KEEP, GU_KEEP, GU_KEEP); //Do not change stencil
+		//draw
 		sceGuDrawArray(GU_TRIANGLES,GU_WEIGHTS(2)|GU_WEIGHT_8BIT|GU_TEXTURE_32BITF|GU_NORMAL_8BIT|GU_VERTEX_32BITF|GU_TRANSFORM_3D,number,0,actor->Object[0].Data+offset);
 		//sceGuDepthMask(0);
 	}
-	sceGuDepthFunc(GU_GEQUAL);
 	sceGuDisable(GU_CULL_FACE);
 }
     AMG_PopMatrix(GU_MODEL);
 	// Control de la iluminación
 	if((!actor->Object[0].Lighting) && (l2)) sceGuEnable(GU_LIGHTING);
+	//reset light
+	sceGuLight(light, AMG_Light[light].Type, AMG_Light[light].Component, &tmp_lgt);
 }
 
 // Borra

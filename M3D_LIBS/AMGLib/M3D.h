@@ -178,10 +178,19 @@ void M3D_Print(M3D_Texture *tex, int x, int y, u32 color, int wave_amp, int wave
 
 /*TEXTURES
 ----------
-	psm: color mode for textures (COLOR_4444/5551/5650/8888)
+	psm: color mode for textures (COLOR_4444/5551/5650/8888/T8,T4).
+		Do not set T4/T8 if texture is not 16/256 colors, this will crash the program.
 	load: were to store the texture (M3D_IN_RAM/VRAM). It will always try to load to VRAM
 	mapping: normal (M3D_TEXTURE_COORDS) reflection (M3D_ENVIRONMENT_MAP)	
 	filter: 0 pixelated, 1 smooth
+	xframes, yframes: number of horizontal and vertical frames on an image.
+		
+		u8 image_animation[] = {
+			X,			//Number of frames
+			0,1,3,2,...	//Frames
+		};
+
+	speed: animation speed.
 */
 M3D_Texture *M3D_GetFont(int n);
 void M3D_SetMipMapping(int set, float bias);
@@ -197,7 +206,7 @@ void M3D_DrawSprite(M3D_Texture *tex, int x = 0, int y = 0, int tile_size_x = 0,
 void M3D_DrawSpriteScaleRot(M3D_Texture *tex, int x = 0, int y = 0, float rot = 0, float scale = 1, int tile_size_x = 0, int tile_size_y = 0, u8 *anim = NULL, float speed = 0);
 void M3D_DrawImage(M3D_Texture *t, int x, int y);//Draw image very fast
 void M3D_TextureUnload(M3D_Texture *tex);
-void M3D_Texture3D_Animate(M3D_Texture *tex, u8 xframes, u8 yframes, u8 *anim, float speed);
+void M3D_Texture3D_Animate(M3D_Texture *tex, u8 xframes, u8 yframes, u8 *image_animation, float speed);
 void M3D_RenderToTextureEnable(M3D_Texture *t);//Render to a custom texture, you can then use it on models.
 void M3D_RenderToTextureDisable(void);
 
@@ -226,7 +235,7 @@ void M3D_MapUnload(M3D_MAP *map);
 		
 		u8 palette_animation[] = {
 			X,//Number of palette cycles
-			0,0,18,8,//First cycle: rate (blend speed), invert, first color in image palette, number of colors to cycle,
+			0,0,18,8,//First cycle: rate (blend speed), invert, first color in image palette, number of colors to cycle.
 			0,0,48,8 //Next  cycle: rate (blend speed), invert ...
 			...
 			...
@@ -244,16 +253,16 @@ void M3D_DrawHealthBar(int x, int y, int health, u32 color = 0xFF00FF00, int siz
 
 /*RETRO EFFECTS
 ---------------
-	mode: 0 or 1. When drawing a wavy image, it sets vertical or horizontal waves.
+	mode: M3D_EFFECT_H_WAVE / M3D_EFFECT_V_WAVE. When drawing a wavy image, it sets vertical or horizontal waves.
 	amp: image wave amplitude.
-	len: image wave length
+	len: image wave length.
 	tx,ty: rotozoom rotation center.
-	px,py,scale: plasma parameters
+	px,py,scale: plasma parameters.
 	
 	M3D_PlasmaTextureCreate: creates a texture which can be used on sprites or 3D models.
-	to update this, you run M3D_PlasmaTextureUpdate
+	to update this, you run M3D_PlasmaTextureUpdate inside main loop.
 	
-	M3D_Plasma2DSet: set a full screen plasma, to update this, you just run M3D_Draw2DPlasma.
+	M3D_Plasma2DSet: set a full screen plasma, to update this, you just run M3D_Draw2DPlasma inside main loop.
 
 */
 void M3D_DrawImageWave(M3D_Texture *tex, int x, int y, float wave_val, u32 mode, s16 amp, s16 len);
@@ -269,7 +278,7 @@ void M3D_DrawCopperBars(u8 number,u8 size,u16 center,u16 amplitude,u8 alpha,floa
 -------
 	MJPEG videos can be used on 3D models or sprites.
 	H264 videos are always displayed on full screen.
-
+	PSVITA will completely crash if you try to use this.
 */
 int M3D_VIDEO_LoadMJPEG(const char *path);
 void M3D_VIDEO_PlayFullScreenMJPEG(const char *path,int loop);
@@ -290,10 +299,10 @@ void M3D_CameraSetUp(M3D_Camera *camera, float ux, float uy, float uz);//Camera 
 
 /*3D LIGHT
 ----------
-	n: light number, I think PSP has 4 lights
+	n: light number, PSP has 4 lights.
 	type: M3D_LIGHT_DIRECTIONAL / M3D_LIGHT_POINTLIGHT / M3D_LIGHT_SPOTLIGHT.
-		spotlight is very difficult to set up, I did not provide setup functions for it.
-	diffise,specular,ambient: light colors
+		(spotlight is very difficult to set up, I did not provide setup functions for it)
+	diffise,specular,ambient: light colors.
 */
 void M3D_LightSet(int n, u32 type, u32 diffuse, u32 specular, u32 ambient);
 void M3D_LightSetPosition(int n, float px, float py, float pz);
@@ -305,9 +314,25 @@ void M3D_LightDisable(u8 n);
 /*3D MODEL
 ----------
 	css: outline size, for cartoon style models with a black outline.
-	psm: Color mode for loaded textures
-	transparent: enable soecial render mode to reduce artifacts in transparent models
+	psm: Color mode for loaded textures.(COLOR_4444/5551/5650/8888/T8,T4).
+		Do not set T4/T8 if texture is not 16/256 colors, this will crash the program.
+	transparent: 0 = not transparent; 1 = reduce alpha artifacts; 2 = no alpha artifacts (no z buffer writting).
 	offset: not yet implemented 
+	obj_number: object number inside M3D_Model, for the moment this is always 1.
+	group_number: texture number, only for wavefront obj, which can support more than one texture.
+	u,v: texture offset for scrolling.
+	mipmap: 0 = off; 1 = on.
+	mapping: M3D_TEXTURE_COORDS (regular) / M3D_ENVIRONMENT_MAP (fake reflection)
+	xframes, yframes: number of horizontal and vertical frames on an image.
+		
+		u8 texture_animation[] = {
+			X,			//Number of frames
+			0,1,3,2,...	//Frames
+		};
+	
+	lighting: 1 on / 0 off.
+	occlusion: 1 on / 0 off. Show object outline behind other objects
+	
 */
 M3D_Model *M3D_LoadModel(const char *path, float css, u32 psm);
 M3D_Model *M3D_LoadModelPLY(const char *path, float css, u32 psm);
@@ -316,32 +341,42 @@ M3D_ModelBIN *M3D_LoadModelBIN(const char *path, u32 psm);
 void M3D_ModelRender(M3D_Model *model, int transparent);
 void M3D_ModelBINRender(M3D_ModelBIN *mesh, u32 offset);
 void M3D_ModelSetTexture(M3D_Model *m, int obj_number, int group_number, M3D_Texture *t);
-void M3D_ModelSetPosition(M3D_Model* m,int obj,float x, float y, float z);
-ScePspFVector3 M3D_ModelGetPosition(M3D_Model* m,int obj);
-void M3D_ModelCopyPosition(M3D_Model* m0, int obj0, M3D_Model* m1,int obj1);
-void M3D_ModelSetRotation(M3D_Model* m,int obj,float x, float y, float z);
-void M3D_ModelTranslate(M3D_Model* m,int obj,float x, float y, float z);
-void M3D_ModelRotate(M3D_Model* m,int obj,float x, float y, float z);
-void M3D_ModelSetScale(M3D_Model* m,int obj,float x, float y, float z);
-void M3D_ModelResetPosition(M3D_Model* m,int obj);
-void M3D_ModelResetRotation(M3D_Model* m,int obj);
+void M3D_ModelSetPosition(M3D_Model* m,int obj_number,float x, float y, float z);
+ScePspFVector3 M3D_ModelGetPosition(M3D_Model* m,int obj_number);
+void M3D_ModelCopyPosition(M3D_Model* m0, int obj0_number, M3D_Model* m1,int obj1_number);
+void M3D_ModelSetRotation(M3D_Model* m,int obj_number,float x, float y, float z);
+void M3D_ModelTranslate(M3D_Model* m,int obj_number,float x, float y, float z);
+void M3D_ModelRotate(M3D_Model* m,int obj_number,float x, float y, float z);
+void M3D_ModelSetScale(M3D_Model* m,int obj_number,float x, float y, float z);
+void M3D_ModelResetPosition(M3D_Model* m,int obj_number);
+void M3D_ModelResetRotation(M3D_Model* m,int obj_number);
 void M3D_ModelSetOrigin(M3D_Model* m,int obj_number,float x, float y, float z);
-void M3D_ModelScrollTexture(M3D_Model* m,int obj_number,int group_number,float x, float y);
+void M3D_ModelScrollTexture(M3D_Model* m,int obj_number,int group_number,float u, float v);
 M3D_Model *M3D_ModelClone(M3D_Model *m);
 
-void M3D_ModelSetTextureFilter(M3D_Model *model, int obj_number, int group_number, int ntex, int filter);
-void M3D_ModelSetTextureMapping(M3D_Model *model, int obj_number, int group_number, int ntex, u32 mapping);
+void M3D_ModelSetTextureFilter(M3D_Model *model, int obj_number, int group_number, int mipmap, int filter);
+void M3D_ModelSetTextureMapping(M3D_Model *model, int obj_number, int group_number, int mipmap, u32 mapping);
 void M3D_ModelSetMultiTexture(M3D_Model *model, int obj_number, int group_number, M3D_Texture *tex);
-void M3D_ModelTexture3D_Animate(M3D_Model *model, int obj_number, int group_number, u8 xframes, u8 yframes, u8 *anim, float speed);
-void M3D_ModelSetLighting(M3D_Model* m,int obj_number, u8 light);
-void M3D_ModelSetOcclusion(M3D_Model* m,int obj,int value);
-
-void M3D_StartReflection(M3D_Model *model, u8 number);
-void M3D_ModelRenderMirror(M3D_Model *model, u8 number, u8 light, u8 axis);
-void M3D_FinishReflection();
+void M3D_ModelTexture3D_Animate(M3D_Model *model, int obj_number, int group_number, u8 xframes, u8 yframes, u8 *texture_animation, float speed);
+void M3D_ModelSetLighting(M3D_Model* m,int obj_number, u8 lighting);
+void M3D_ModelSetOcclusion(M3D_Model* m,int obj_number,int occlusion);
 
 void M3D_DrawSkyBox(M3D_Model *model,float fov);
 
+
+/*REFLECTIONS
+-------------
+
+*/
+void M3D_StartReflection(M3D_Model *model, u8 number);
+void M3D_ModelRenderMirror(M3D_Model *model, u8 number, u8 light_number, u8 axis);
+void M3D_FinishReflection();
+
+
+/*PSP BINARY MODELS
+-------------------
+
+*/
 void M3D_ModelBINSetPosition(M3D_ModelBIN* m,float x, float y, float z);
 void M3D_ModelBINSetRotation(M3D_ModelBIN* m,float rx, float ry, float rz);
 void M3D_ModelBINTranslate(M3D_ModelBIN* m,float dx, float dy, float dz);
