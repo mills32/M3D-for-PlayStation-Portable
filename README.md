@@ -90,11 +90,11 @@ The only thing not working on PSVITA is the h264 video decoder (it crashed my PS
 ## CREATE ASSETS
 
 **<ins>IMAGES:</ins>** just PNG files, 32 bit RGBA, 24 bit RGB, indexed 256/16 colors.  
-**<ins>FONTS:</ins>** just PNG files, 32 bit RGBA, 24 bit RGB, indexed 256/16 colors. Image must be 16x16 characters, arranged as defined in basic ascii.
-  Supported languages: any which supports ansi (1 byte per character) encoding.
-  In your text editor, select "ANSI" encoding. To use English, you are done. 
-  To use Spanish, French or any language containing non-English characters, select your character set.
-  For example, Spanish and French work with "Western Europe->OEM US".
+**<ins>FONTS:</ins>** just PNG files, 32 bit RGBA, 24 bit RGB, indexed 256/16 colors. Image must be 16x16 characters, arranged as defined in basic ascii.  
+  Supported languages: any which supports ansi (1 byte per character) encoding.  
+  In your text editor, select "ANSI" encoding. To use English, you are done.  
+  To use Spanish, French or any language containing non-English characters, select your character set.  
+  For example, Spanish and French work with "Western Europe->OEM US".  
 **<ins>SPRITES:</ins>** just PNG files, 32 bit RGBA, 24 bit RGB, indexed 256/16 colors. Create them by placing every animation frame from left to right, and from top to bottom.   
 **<ins>2D MAPS:</ins>** create them using a PNG image for the tiles, and TILED to create the map http://www.mapeditor.org/
 maps must be in CSV format.  
