@@ -2231,7 +2231,7 @@ void M3D_ModelSetNormalTexture(M3D_Model *mod,int obj_number, int group, M3D_Cam
 	AMG_Model *model = (AMG_Model*)mod;
 	AMG_Camera *camera = (AMG_Camera*)cam;
 	if(!model->Object[obj_number].Group[group].NormalMap) return;
-	int i;
+	int i; 
 	int ncolors = 0;
 	ScePspFMatrix4 __attribute__((aligned(16))) m;
 	ScePspFVector3 __attribute__((aligned(16))) lvector3a = {AMG_Light[l].Pos.x, AMG_Light[l].Pos.y, AMG_Light[l].Pos.z};
@@ -2241,7 +2241,6 @@ void M3D_ModelSetNormalTexture(M3D_Model *mod,int obj_number, int group, M3D_Cam
 	ScePspFVector4 __attribute__((aligned(16))) tvector;
 	
 	AMG_Normalize(&lvector3a);
-	
 	//Get model rotation (physics models use quaternions, so they won't update this ->rot vector)
 	AMG_LoadIdentityUser(&m);
 	AMG_RotateUser(&m,&model->Object[obj_number].Rot);
