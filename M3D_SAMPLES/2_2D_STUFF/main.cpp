@@ -5,8 +5,11 @@ PSP_MAIN_THREAD_ATTR(THREAD_ATTR_USER | THREAD_ATTR_VFPU);
 PSP_HEAP_SIZE_KB(-1024);
 
 
-//For this character set to work well, LOAD and SAVE
-//source files in "OEM US FORMAT". 
+//Supported languages: any which supports ansi (1 byte per character) encoding.
+//In your text editor, select "ANSI" encoding. To use English, you are done. 
+//To use Spanish, French or any language containing non-English characters, select your character set.
+//For example, Spanish and French work with "Western Europe->OEM US".
+ 
 char test_box_8x8[] = {
 	"ÉÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ»\n"
 	"º  TEXT BOX 8x8  FORMAT:  º\n"
@@ -19,17 +22,25 @@ char test_box_16x16[] = {
 	"º TEXT BOX 16x16 º\n"
 	"ÈÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¼\n"
 };
-
+	// 
 //For this character set to work well, LOAD and SAVE
 //source files in "OEM US FORMAT". 
 char test_chars[] = {
-	" !\"#$%%&'()*+,-./\n""0123456789:;<=>?\n"
-	"@ABCDEFGHIJKLMNO\n""PQRSTUVWXYZ[\\]^_\n"
-	"`abcdefghijklmno\n""pqrstuvwxyz{|}~0\n"
-	"€‚ƒ„…†‡ˆ‰Š‹Œ\n""‘’“”•–—˜™š›œŸ\n"
-	" ¡¢£¤¥¦§¨©ª«¬­®¯\n""°±²»¼ÈÉÍ Û Ü İŞß\n"
-	"àáâãäåæçèéêëìíîï\n""ğñòóôõö÷øùúûüış \n"	
+	"\n"
+	" !\"#$%%&'()*+,-./\n"
+	"0123456789:;<=>?\n"
+	"@ABCDEFGHIJKLMNO\n"
+	"PQRSTUVWXYZ[\\]^_\n"
+	"`abcdefghijklmno\n"
+	"pqrstuvwxyz{|}~0\n"
+	"€‚ƒ„…†‡ˆ‰Š‹Œ\n"
+	"‘’“”•–—˜™š›œŸ\n"
+	" ¡¢£¤¥¦§¨©ª«¬­®¯\n"
+	"°±²»¼ÈÉÍ Û Ü İŞß\n"
+	"àáâãäåæçèéêëìíîï\n"
+	"ğñòóôõö÷øùúûüış \n"	
 };
+
 
 //Declaring these outside main causes choppy animations (unknown bug)
 u8 Waterfall_Cycle[] = {
@@ -49,17 +60,17 @@ int main(){
 	
 	//Initialization
 	M3D_Init(COLOR_5650,1);
-	//AMG_SetCpuSpeed(222);
 
-	M3D_Texture *Sprite_RocketA = M3D_LoadTexture("Files/Rocketa.png",0,COLOR_T4);
-	M3D_Texture *Sprite_RocketB = M3D_LoadTexture("Files/Rocketb.png",0,COLOR_T4);
+	M3D_Texture *Sprite_RocketA = M3D_LoadTexture("Files/Rocketa.png",M3D_IN_VRAM,COLOR_T4);
+	M3D_Texture *Sprite_RocketB = M3D_LoadTexture("Files/Rocketb.png",M3D_IN_RAM,COLOR_T4);
 	M3D_Texture *Font0 = M3D_GetFont(0);
 	M3D_Texture *Font1 = M3D_GetFont(1);
+	
 	//Load Maps
 	M3D_MAP *Layer3 = M3D_LoadMapTMX("Files/Level1_clouds.tmx",1,M3D_IN_VRAM,COLOR_T4);
 	M3D_MAP *Layer2 = M3D_LoadMapTMX("Files/level1_bkg.tmx",1,M3D_IN_VRAM,COLOR_T4);		
 	M3D_MAP *Layer1 = M3D_LoadMapTMX("Files/Level1.tmx",0,M3D_IN_VRAM,COLOR_T8);
-	//OSL_IMAGE *test = oslLoadImageFilePNG("Files/Level1.png",OSL_IN_VRAM,GU_PSM_T8);
+	
 	M3D_Texture *Floppy = M3D_LoadTexture("Files/floppy.png",0,COLOR_T4);
 	//Load the sounds
 	M3D_SOUND *music = M3D_LoadMP3("Files/vlogshowreel.mp3",M3D_SOUND_STREAM);
@@ -68,7 +79,13 @@ int main(){
 	
 	//Do not call this in a loop
 	int FREE_RAM = M3D_GetFreeRAM();
-
+	int USED_VRAM = M3D_GetUsedVRAM();
+	
+	/*
+	for (int i = 128; i< 256;i++) test_chars[i] = i;
+	test_chars[256] = '\0';*/
+	
+	//M3D_Quit();
 	while (1){
 		M3D_updateScreen(0x00000000);
 		
@@ -110,7 +127,7 @@ int main(){
 
 		//TEXT INFO
 		M3D_Printf(Font1,  8,  4,0xff0000ff,0,0,0,"    OSLIB 2D STUFF SAMPLE");
-		M3D_Printf(Font0,280,228,0xffffffff,0,0,0,"RENDER MODE %s\nVIDEO RAM TOTAL: %i KB\nVIDEO RAM  USED: %i KB",M3D_GetScreenMode(),USER_VRAM,M3D_GetUsedVRAM());
+		M3D_Printf(Font0,280,228,0xffffffff,0,0,0,"RENDER MODE %s\nVIDEO RAM TOTAL: %i KB\nVIDEO RAM  USED: %i KB",M3D_GetScreenMode(),USER_VRAM,USED_VRAM);
 		M3D_Printf(Font0,280,252,0xffffffff,0,0,0,"MAIN RAM  USER: %i KB\nMAIN RAM  FREE: %i KB",USER_RAM,FREE_RAM);
 		M3D_Printf(Font0,  8,216,0xffffCCCC,0,0,0,"L R U D: MOVE SHIP; HOME: EXIT");
 		

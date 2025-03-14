@@ -143,12 +143,15 @@ void M3D_MikModReverb(u8 rev); //DISABLE reverb to make mikmod faster
 //M3D(AMG - OSLib)
 void M3D_Init(u32 psm, u32 TV);
 void M3D_SetFade(u32 mode, u32 color, u32 speed);//Fade screen. Mode 1 in / mode 2 out
+void M3D_Wait(u32 seconds);
 //Frameskip: (0 = keep 60 if possible, else drop frames. /  1 = keep 30 (does not work well)
 void M3D_FrameSkip(int mode); 
 int M3D_TV_State();//TV out state 0 = OFF; 1 = ON
 extern int M3D_ScreenX;	//Screen size
 extern int M3D_ScreenY;	//Screen size
 void M3D_ReadButtons();
+void M3D_Loading_Start(const char *path, int x, int y, u16 tx, u16 ty, float speed);
+void M3D_Loading_Stop();
 void M3D_Quit();
 u16 M3D_GetFreeRAM();
 u16 M3D_GetTotalVRAM();
@@ -209,6 +212,7 @@ void M3D_TextureUnload(M3D_Texture *tex);
 void M3D_Texture3D_Animate(M3D_Texture *tex, u8 xframes, u8 yframes, u8 *image_animation, float speed);
 void M3D_RenderToTextureEnable(M3D_Texture *t);//Render to a custom texture, you can then use it on models.
 void M3D_RenderToTextureDisable(void);
+ScePspSVector2 M3D_TextureGetSize(M3D_Texture *texture);
 
 /*MAPS
 ------
@@ -362,7 +366,7 @@ void M3D_ModelSetLighting(M3D_Model* m,int obj_number, u8 lighting);
 void M3D_ModelSetOcclusion(M3D_Model* m,int obj_number,int occlusion);
 
 void M3D_DrawSkyBox(M3D_Model *model,float fov);
-
+void M3D_ModelUnload(M3D_Model *model);
 
 /*REFLECTIONS
 -------------
@@ -375,7 +379,11 @@ void M3D_FinishReflection();
 
 /*PSP BINARY MODELS
 -------------------
-
+void M3D_ModelUnload(M3D_Model *model);
+void M3D_ModelBINUnload(M3D_ModelBIN *model);
+void M3D_SkinnedActorUnload(M3D_SkinnedActor *a);
+void M3D_MorphingActorUnload(M3D_MorphingActor *a);
+void M3D_NurbsDelete(M3D_NurbsSurface *surface);
 */
 void M3D_ModelBINSetPosition(M3D_ModelBIN* m,float x, float y, float z);
 void M3D_ModelBINSetRotation(M3D_ModelBIN* m,float rx, float ry, float rz);
@@ -383,7 +391,7 @@ void M3D_ModelBINTranslate(M3D_ModelBIN* m,float dx, float dy, float dz);
 void M3D_ModelBINRotate(M3D_ModelBIN* m,float drx, float dry, float drz);
 void M3D_ModelBINSetOrigin(M3D_ModelBIN* m,float ox, float oy, float oz);
 void M3D_ModelBINScrollTexture(M3D_ModelBIN* m,float du, float dv);
-
+void M3D_ModelBINUnload(M3D_ModelBIN *model);
 
 //SKINNED MODELS
 M3D_SkinnedActor *M3D_LoadSkinnedActor(const char *path, float outline, u32 psm);
@@ -400,6 +408,8 @@ void M3D_CameraFollowSkinnedActor(M3D_Camera *cam, M3D_SkinnedActor *act, float 
 ScePspFVector3 M3D_SkinnedActorGetPos(M3D_SkinnedActor *actor);
 //void M3D_SkinnedActorSetOcclusion(M3D_SkinnedActor *act,int value);
 void M3D_SkinnedActorRenderMirror(M3D_SkinnedActor* act, u8 axis);
+void M3D_SkinnedActorUnload(M3D_SkinnedActor *a);
+void M3D_SkinnedActorSetLighting(M3D_SkinnedActor *a, int light);
 
 //MORPHING MODELS
 M3D_MorphingActor *M3D_LoadMorphingActor(const char *path, float outline, u32 psm);
@@ -412,11 +422,13 @@ void M3D_MorphingActorSetScale(M3D_MorphingActor *act, float sx, float sy, float
 void M3D_MorphingActorTranslate(M3D_MorphingActor *act, float dx, float dy, float dz);
 void M3D_MorphingActorRotate(M3D_MorphingActor *act, float rdx, float rdy, float rdz);
 ScePspFVector3 M3D_MorphingActorGetPosition(M3D_MorphingActor *act);
+void M3D_MorphingActorUnload(M3D_MorphingActor *a);
+void M3D_MorphingActorSetLighting(M3D_MorphingActor *a, int light);
 //void M3D_MorphingActorSetOcclusion(M3D_MorphingActor *act,int value);
 
 //NURBS SURFACE
-M3D_NurbsSurface *M3D_CreateNurbsSurface(const char *texpath,float size,int steps);
-void M3D_NurbsSurfaceSet(M3D_NurbsSurface *surface, int mode, float px0, float py0, float px1, float py1, float strengh, float angle);
+M3D_NurbsSurface *M3D_CreateNurbsSurface(const char *texpath, u32 psm, float size,int steps);
+void M3D_NurbsSurfaceSet(M3D_NurbsSurface *surface, u32 mode, float px0, float py0, float px1, float py1, float strengh, float angle);
 void M3D_NurbsSurfaceRender(M3D_NurbsSurface *surface);
 void M3D_NurbsSetMapping(M3D_NurbsSurface *surface, int mode);
 void M3D_NurbsDelete(M3D_NurbsSurface *surface);
@@ -438,6 +450,7 @@ void M3D_ParticleSetFilter(int emitter,int filter);
 void M3D_ParticleStart(int emitter,float size);
 void M3D_ParticlesRender(float speed );
 void M3D_ParticleStop(int emitter);
+void M3D_ParticleSystemUnload();
 
 //SHADOWS
 void M3D_ModelCastShadow(M3D_Model *c, int obj = 0, int alpha = 100, int type = 1, int light = 0);
@@ -470,18 +483,20 @@ void M3D_ModelConfPhysics(M3D_Model *m, int obj_number, float mass, u32 shapetyp
 void M3D_ModelInitPhysics(M3D_Model *model);
 void M3D_ModelBINInitPhysics(M3D_ModelBIN *model);
 void M3D_SkinnedActorInitPhysics(M3D_SkinnedActor *actor, float mass);
+void M3D_MorphingActorInitPhysics(M3D_MorphingActor *actor, float mass);
 
 void M3D_ModelSetProperties(M3D_Model *m, int obj_number, float friction, float rollfriction, float restitution);
 
 void M3D_ModelDeletePhysics(M3D_Model *model);
-//void AMG_SkinnedActorDeletePhysics(AMG_Skinned_Actor *actor)
-//void AMG_ModelBINDeletePhysics(AMG_Skinned_Actor *actor)
+void M3D_SkinnedActorDeletePhysics(M3D_SkinnedActor *actor);
+void M3D_MorphingActorDeletePhysics(M3D_MorphingActor *actor);
+void M3D_ModelBINDeletePhysics(M3D_ModelBIN *model);
 u32 M3D_ModelCheckCollision(M3D_Model *m,int obj_number,const void *name);
 
-void M3D_ConstraintBall(M3D_Model *model, int obj_number, float pivotx, float pivoty, float pivotz);
-void M3D_ConstraintHinge(M3D_Model *model,int obj_number, float pivotx, float pivoty, float pivotz, int axis);
-void M3D_ConstraintHinge2(M3D_Model *model1,int obj_number1, M3D_Model *model2, int obj_number2,float pivotx, float pivoty, float pivotz, float pivot1x, float pivot1y, float pivot1z, int axis);
-//void M3D_ConstraintDelete(M3D_Model *model);
+void M3D_ConstraintBall(M3D_Model *model, int obj_number, int cons_number, float pivotx, float pivoty, float pivotz);
+void M3D_ConstraintHinge(M3D_Model *model,int obj_number, int cons_number, float pivotx, float pivoty, float pivotz, int axis);
+void M3D_ConstraintHinge2(M3D_Model *model1,int obj_number1, M3D_Model *model2, int obj_number2, int cons_number, float pivotx, float pivoty, float pivotz, float pivot1x, float pivot1y, float pivot1z, int axis);
+void M3D_ConstraintsRemove(M3D_Model *model, int obj_number, int cons_number);
 
 void M3D_ModelSetForce(M3D_Model *model, int obj_number, float x, float y, float z);
 char *M3D_BulletRayTracingTest(ScePspFVector3 *pos, ScePspFVector3 *vec);
@@ -499,8 +514,6 @@ void M3D_VehicleMove(M3D_Model *model, float velocitator, float deceleratrix, fl
 void M3D_ModelSetMaxVelocity(M3D_Model *model, int obj_number, float vel);
 //void AMG_VehicleDeletePhysics(AMG_Skinned_Actor *actor)
 ScePspFVector3 M3D_VehicleGetPos(M3D_Model *model, int obj_number);
-
-
 
 
 }

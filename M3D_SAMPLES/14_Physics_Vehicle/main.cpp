@@ -58,10 +58,11 @@ int main(){
 		
 		M3D_LightDisable(0);
 		
+
 		//DRAW 2D STUFF
 		M3D_2DMode(1);
 			M3D_Printf(Font1,0, 8,0xffddffdd,0,0,0,"         VEHICLE DEMO         ");
-			M3D_Printf(Font0,0,240,0xffffffff,0,0,0," X = Velocitator\n O = Deceleratrix\n PAD L R = STEERING");
+			M3D_Printf(Font0,0,240,0xffffffff,0,0,0," X = Velocitator\n O = Deceleratrix\n PAD L R = STEERING\n L = RESET CAR");
 		M3D_2DMode(0);
 		
 		//READ CONTROLS
@@ -69,6 +70,14 @@ int main(){
 
 		//UPDATE VARIABLES
 		M3D_VehicleMove(Car,32,2,0.02);
+		
+		//Reset CAR
+		if (M3D_KEYS->pressed.L/* || Car_Position.y < -10*/){
+			M3D_ModelDeletePhysics(Car);
+			M3D_ModelSetPosition(Car,0,0.01,3,0.01);//values = 0, do not change position
+			M3D_VehicleInitPhysics(Car, 5, 0.25, 0.3, 10, 0.6, 0.68);
+			M3D_ModelSetMaxVelocity(Car,0,16);
+		}
 
 		if (M3D_KEYS->pressed.triangle) M3D_Quit();	
 	}

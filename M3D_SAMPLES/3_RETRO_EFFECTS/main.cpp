@@ -7,10 +7,13 @@ PSP_HEAP_SIZE_KB(-1024);
 
 
 char demo_text[] = {
-	"WRITE SOME WEIRD TEXT HERE, (THE LONGER, THE BETTER). "
-	"FOR AN AUTHENTIC DEMOSCENE EXPERIENCE, BE SURE THIS TEXT MAKES NO SENSE AT ALL!!!.     "
+	" WRITE SOME WEIRD TEXT HERE, (THE LONGER, THE BETTER).      "
+	"FOR AN AUTHENTIC DEMOSCENE EXPERIENCE, BE SURE THIS TEXT MAKES NO SENSE AT ALL!!!.  "
 };
 
+char demo_text1[] = {
+	0x20,0x21,0x23,0x14,0x16,
+};
 
 //MAIN FUNCTION: PROGRAM STARTS HERE
 int main(){
@@ -27,7 +30,7 @@ int main(){
 	M3D_FrameSkip(0);
 
 	//Load images
-	M3D_Texture *Font1 = M3D_GetFont(1);
+	M3D_Texture *Font1 = M3D_LoadTexture("Files/demofont.png",0,COLOR_T4);
 	M3D_Texture *Logo = M3D_LoadTexture("files/logo.png",0,COLOR_T4);
 	M3D_Texture *Floppy = M3D_LoadTexture("files/floppy.png",0,COLOR_T4);
 	M3D_Texture *RotoBKG = M3D_LoadTexture("files/rotozoom.png",0,COLOR_T8);

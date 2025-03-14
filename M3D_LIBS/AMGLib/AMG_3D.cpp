@@ -19,7 +19,7 @@
 
 // OSLIB
 #include <oslib/oslib.h>
-
+extern int skip;
 
 // Variables
 char amgt[256];
@@ -291,6 +291,7 @@ char *M3D_GetScreenSize(){
 
 u16 M3D_GetFreeRAM(){
 	return u16(oslGetRamStatus().maxAvailable/1024);
+	//return u16(sceKernelTotalFreeMemSize());
 }
 
 u16 M3D_GetTotalVRAM(){
@@ -517,12 +518,13 @@ void AMG_Fade(){
 	u32 alpha = AMG_FadeAlpha;
 	if (AMG_FadeAlpha < 0) alpha = 0;
 	if ( AMG_FadeAlpha > 255) alpha = 255;
-
-	sceGuDisable(GU_TEXTURE_2D);
-	sceGuDisable(GU_DEPTH_TEST);
-	sceGuColor((AMG_FadeColor & 0x00FFFFFF) + (alpha<<24));
-	sceGuDrawArray(GU_SPRITES, GU_VERTEX_16BIT | GU_TRANSFORM_2D,2, 0,QUAD);
-	sceGuEnable(GU_DEPTH_TEST);
+	if (!skip){
+		sceGuDisable(GU_TEXTURE_2D);
+		sceGuDisable(GU_DEPTH_TEST);
+		sceGuColor((AMG_FadeColor & 0x00FFFFFF) + (alpha<<24));
+		sceGuDrawArray(GU_SPRITES, GU_VERTEX_16BIT | GU_TRANSFORM_2D,2, 0,QUAD);
+		sceGuEnable(GU_DEPTH_TEST);
+	}
 }
 
 

@@ -15,8 +15,8 @@
 #include <oslib/oslib.h>
 #include <pspmoduleinfo.h>
 #include <psppower.h>
-#include <M3D.h>
-
+#include "AMG_Texture.h"
+#include "AMG_Model.h"
 
 // Cambia la velocidad de CPU y el BUS (bus = cpu/2)
 void M3D_SetCpuSpeed(int mhz){
@@ -109,8 +109,127 @@ void M3D_ReadButtons(){
 	oslReadKeys();
 }
 
+void M3D_Wait(u32 seconds){
+	u32 counter = 0;
+	while(counter < (u32)(seconds*60)){
+		counter++;
+		sceDisplayWaitVblankStart();
+	}
+}
+
+
+//Loading animation
+SceUID AMG_Loading_Thread;
+void *AMG_Loading_A;
+AMG_Texture *AMG_Loading_Sprite;
+int AMG_LOADING = 0;
+int AMG_LOADING_X = 0;
+int AMG_LOADING_Y = 0;
+u16 AMG_LOADING_TX = 0;
+u16 AMG_LOADING_TY = 0;
+float AMG_LOADING_SPEED = 0;
+
+SceKernelThreadEntry AMG_Loading_Thread_loop(){
+	u8 anim[256] = {0};
+	u16 tiles = (AMG_Loading_Sprite->Width/AMG_LOADING_TX)*(AMG_Loading_Sprite->Height/AMG_LOADING_TY);
+	if (tiles > 256) AMG_Error("TOO MANY TILES IN LOADING ANIMATION\nDEMASIADOS TLES EN ANIMACIÓN DE CARGA",0);
+	anim[0] = tiles;
+	for (int i = 0; i < tiles;i++) anim[i+1] = i;
+	int x,y;
+	if (AMG_LOADING_X == 0 && AMG_LOADING_Y == 0){
+		x = (AMG.ScreenWidth/2) - (AMG_LOADING_TX/2);
+		y = (AMG.ScreenHeight/2) - (AMG_LOADING_TY/2);
+	} else {
+		x = AMG_LOADING_X;
+		y = AMG_LOADING_Y;
+	}
+	while(AMG_LOADING){
+		M3D_2DMode(1);
+		M3D_DrawSprite((M3D_Texture*)AMG_Loading_Sprite,x,y,AMG_LOADING_TX,AMG_LOADING_TY,anim,AMG_LOADING_SPEED);
+		M3D_2DMode(0);
+		M3D_updateScreen(0);
+	}
+	sceKernelExitThread(1);
+	return 0;
+}
+
+void M3D_Loading_Start(const char *path, int x, int y, u16 tx, u16 ty, float speed){
+	AMG_LOADING = 1;
+	AMG_LOADING_X = x;
+	AMG_LOADING_Y = y;
+	AMG_LOADING_TX = tx;
+	AMG_LOADING_TY = ty;
+	AMG_LOADING_SPEED = speed;
+	AMG_UnloadTexture(AMG_Loading_Sprite);
+	AMG_Loading_Sprite = (AMG_Texture*) M3D_LoadTexture(path,M3D_IN_RAM,COLOR_8888);
+	AMG_Loading_Thread = sceKernelCreateThread("SHOW ANIMATION",(SceKernelThreadEntry)AMG_Loading_Thread_loop, 0x8, 0x10000, 0, 0);
+	sceKernelStartThread(AMG_Loading_Thread, 4, &AMG_Loading_A);
+}
+
+void M3D_Loading_Stop(){
+	AMG_LOADING = 0;
+	sceKernelWaitThreadEnd(AMG_Loading_Thread, 0);
+	AMG_UnloadTexture(AMG_Loading_Sprite);
+}
+
 void M3D_Quit(){
 	oslQuit();
 }
 
 M3D_CONTROLLER *M3D_KEYS;
+
+/*
+
+SceKernelThreadEntry AMG_Loading_Thread_loop(){
+	u8 anim[] = {4, 0,1,2,3};
+	while(AMG_LOADING){
+		if (AMG_Loading_Type == 0) {
+			int x = (AMG.ScreenWidth/2) - (AMG_Loading_Sprite->Width/4);
+			int y = (AMG.ScreenHeight/2) - (AMG_Loading_Sprite->Height/4);
+			M3D_2DMode(1);
+			M3D_DrawSprite((M3D_Texture*)AMG_Loading_Sprite,x,y,AMG_Loading_Sprite->Width/2,AMG_Loading_Sprite->Height/2,anim,0.04);
+			M3D_2DMode(0);
+		}
+		if (AMG_Loading_Type == 1) {
+			M3D_CameraSet(AMG_Loading_Camera);
+			M3D_CameraSetPosition(AMG_Loading_Camera,0,0,3);
+			M3D_CameraSetEye(AMG_Loading_Camera,0,0,0);
+			AMG_RenderSkinnedActor(AMG_Loading_SkinnedActor);
+		}
+		M3D_updateScreen(0);
+	}
+	sceKernelExitThread(1);
+	return 0;
+}
+
+void M3D_Loading_Start(int type, const char *path, float speed){
+	if (type < 0 || type > 2) AMG_Error("ANIMATION TYPE MUST BE 0, 1 or 2\nTIPO DE ANIMACIÓN DEBE SER 0, 1 o 2",0);
+	AMG_LOADING = 1;
+	AMG_Loading_Type = type;
+	if (AMG_Loading_Type == 0) {
+		AMG_UnloadTexture(AMG_Loading_Sprite);
+		AMG_Loading_Sprite = (AMG_Texture*) M3D_LoadTexture(path,M3D_IN_RAM,COLOR_8888);
+	}
+	if (AMG_Loading_Type == 1) {
+		M3D_SkinnedActorUnload((M3D_SkinnedActor*)AMG_Loading_SkinnedActor);
+		AMG_Loading_SkinnedActor = AMG_LoadSkinnedActor(path,0,COLOR_4444);
+		AMG_ConfigSkinnedActor(AMG_Loading_SkinnedActor,0,3,speed,1,0);
+		if (AMG_Loading_Camera) {free(AMG_Loading_Camera); AMG_Loading_Camera = NULL;}
+		AMG_Loading_Camera = M3D_CameraInit();
+		AMG_Push_Perspective_Matrix((float)AMG.ScreenWidth,(float)AMG.ScreenHeight,45);
+		AMG_InitMatrixSystem(55.0f,0.5,100,1);
+		M3D_2DMode(0);
+	}
+	
+	AMG_Loading_Thread = sceKernelCreateThread("Loading animation",(SceKernelThreadEntry)AMG_Loading_Thread_loop, 0x8, 0x10000, 0, 0);
+	sceKernelStartThread(AMG_Loading_Thread, 4, &AMG_Loading_A);
+}
+
+void M3D_Loading_Stop(){
+	AMG_LOADING = 0;
+	//sceKernelTerminateDeleteThread(AMG_Loading_Thread);
+	sceKernelWaitThreadEnd(AMG_Loading_Thread, 0);
+	if (AMG_Loading_Type == 0) AMG_UnloadTexture(AMG_Loading_Sprite);
+	if (AMG_Loading_Type == 1) M3D_SkinnedActorUnload((M3D_SkinnedActor*)AMG_Loading_SkinnedActor);
+	AMG_Pop_Perspective_Matrix();
+}*/

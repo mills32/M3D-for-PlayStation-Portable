@@ -30,12 +30,13 @@ typedef struct{
 	btCollisionShape *Shape;
 	btRaycastVehicle *m_vehicle;
 	btVehicleRaycaster *m_vehicleRayCaster;
-	btTypedConstraint *BallConstraint;
-	btHingeConstraint *HingeConstraint;
+	btTypedConstraint *BallConstraint[2];
+	btHingeConstraint *HingeConstraint[2];
 	btTransform Transform;
 	btVector3 Inertia;
 	// Datos adicionales (btConvexHullShape)
 	u32 ConvexVertices;
+	btDefaultMotionState *MotionState;
 	btTriangleMesh *tri;
 	btConvexShape *sh;
 	btShapeHull *hull;
@@ -53,6 +54,7 @@ typedef struct{
 	float	connectionHeight;//Altura de los ejes respecto al chasis
 }amg_mdh;
 amg_mdh amg_model_ptr[64];
+amg_mdh amg_world_static_model_ptr;
 u32 amg_max_objects = 0;
 
 // Funciones locales
@@ -109,14 +111,33 @@ void AMG_InitBulletPhysics(int world_size, u32 max_objects){
 		amg_model_ptr[i].Shape = NULL;
 		amg_model_ptr[i].m_vehicle = NULL;
 		amg_model_ptr[i].m_vehicleRayCaster = NULL;
-		amg_model_ptr[i].BallConstraint = NULL;
-		amg_model_ptr[i].HingeConstraint = NULL;
+		amg_model_ptr[i].BallConstraint[0] = NULL;
+		amg_model_ptr[i].BallConstraint[1] = NULL;
+		amg_model_ptr[i].HingeConstraint[0]= NULL;
+		amg_model_ptr[i].HingeConstraint[1]= NULL;
 		amg_model_ptr[i].tri = NULL;
 		amg_model_ptr[i].sh = NULL;
 		amg_model_ptr[i].hull = NULL;
 	}
 	// Establece el callback de colisi贸n
 	gContactAddedCallback = amg_bcallback;
+	
+	
+	//ADD world static object for fixed constraints
+	amg_world_static_model_ptr.Body = new btRigidBody(0, 0,0);
+	amg_world_static_model_ptr.Body->setMassProps(btScalar(0.),btVector3(btScalar(0.),btScalar(0.),btScalar(0.)));
+	AMG_DynamicWorld->addRigidBody(amg_world_static_model_ptr.Body);
+	amg_world_static_model_ptr.md = NULL;
+	amg_world_static_model_ptr.Shape = NULL;
+	amg_world_static_model_ptr.m_vehicle = NULL;
+	amg_world_static_model_ptr.m_vehicleRayCaster = NULL;
+	amg_world_static_model_ptr.BallConstraint[0] = NULL;
+	amg_world_static_model_ptr.BallConstraint[1] = NULL;
+	amg_world_static_model_ptr.HingeConstraint[0]= NULL;
+	amg_world_static_model_ptr.HingeConstraint[1]= NULL;
+	amg_world_static_model_ptr.tri = NULL;
+	amg_world_static_model_ptr.sh = NULL;
+	amg_world_static_model_ptr.hull = NULL;
 }
 
 void M3D_BulletInitPhysics(int world_size, u32 max_objects){
@@ -227,27 +248,6 @@ void AMG_InitModelPhysics(AMG_Model *model){
 					convexHull->initializePolyhedralFeatures();
 					obj->ConvexVertices = obj->hull->numVertices();
 					obj->Shape = convexHull;
-					
-/*					
-					float collisionMargin = 0.01f;
-					
-					btAlignedObjectArray<btVector3> planeEquations;
-					btAlignedObjectArray<btVector3>
-					btGeometryUtil::getPlaneEquationsFromVertices(obj->tri,planeEquations);
-
-					btAlignedObjectArray<btVector3> shiftedPlaneEquations;
-					for (int p=0;p<planeEquations.size();p++)
-					{
-						btVector3 plane = planeEquations[p];
-						plane[3] += collisionMargin;
-						shiftedPlaneEquations.push_back(plane);
-					}
-					btAlignedObjectArray<btVector3> shiftedVertices;
-					btGeometryUtil::getVerticesFromPlaneEquations(shiftedPlaneEquations,shiftedVertices);
-
-					
-					btConvexHullShape* convexShape = new btConvexHullShape(&(shiftedVertices[0].getX()),shiftedVertices.size());
-				*/
 				}
 				
 				// Configura la escala
@@ -257,17 +257,17 @@ void AMG_InitModelPhysics(AMG_Model *model){
 		}
 		obj->Transform.setIdentity();
 		obj->Transform.setOrigin(btVector3(model->Object[i].Pos.x, model->Object[i].Pos.y, model->Object[i].Pos.z));
-		btDefaultMotionState* MotionState = new btDefaultMotionState(obj->Transform);
+		obj->MotionState = new btDefaultMotionState(obj->Transform);
 		obj->Inertia = btVector3(0.0f, 0.0f, 0.0f);
 		if(model->Object[i].Mass > 0.0f) obj->Shape->calculateLocalInertia(model->Object[i].Mass, obj->Inertia);
-		obj->Body = new btRigidBody(model->Object[i].Mass, MotionState, obj->Shape, obj->Inertia);
+		obj->Body = new btRigidBody(model->Object[i].Mass, obj->MotionState, obj->Shape, obj->Inertia);
 		AMG_DynamicWorld->addRigidBody(obj->Body);
 		if(!model->Object[i].isGround) obj->Body->activate();		// Activa el objeto
 		obj->Body->setActivationState(WANTS_DEACTIVATION);
 		obj->Body->setSleepingThresholds(0.6,0.6);
 		
 		// Establece el Callback
-		obj->Body->setCollisionFlags(obj->Body->getCollisionFlags() | btCollisionObject::CF_DISABLE_SPU_COLLISION_PROCESSING/*| btCollisionObject::CF_STATIC_OBJECT*/);
+		obj->Body->setCollisionFlags(obj->Body->getCollisionFlags() | btCollisionObject::CF_DISABLE_SPU_COLLISION_PROCESSING);//| btCollisionObject::CF_STATIC_OBJECT
 		obj->Body->setUserPointer(&model->Object[i]);
 		// Corrige el centro de rotaci贸n si es un cono
 		if(model->Object[i].ShapeType == AMG_BULLET_SHAPE_CONE) model->Object[i].Origin.y += y;
@@ -314,9 +314,9 @@ void AMG_InitBinaryMeshPhysics(AMG_BinaryMesh *model){
 
 	obj->Transform.setIdentity();
 	obj->Transform.setOrigin(btVector3(model->Pos.x, model->Pos.y, model->Pos.z));
-	btDefaultMotionState* MotionState = new btDefaultMotionState(obj->Transform);
+	obj->MotionState = new btDefaultMotionState(obj->Transform);
 	obj->Inertia = btVector3(0.0f, 0.0f, 0.0f);
-	obj->Body = new btRigidBody(0.0f, MotionState, obj->Shape, obj->Inertia);
+	obj->Body = new btRigidBody(0.0f, obj->MotionState, obj->Shape, obj->Inertia);
 	AMG_DynamicWorld->addRigidBody(obj->Body);
 	obj->Body->setActivationState(WANTS_DEACTIVATION);
 	obj->Body->setSleepingThresholds(0.6,0.6);
@@ -351,14 +351,13 @@ void AMG_InitSkinnedActorPhysics(AMG_Skinned_Actor *actor, float mass){
 	z = ((actor->Object[0].BBox[1].z - actor->Object[0].BBox[0].z)/2.0f)*actor->Scale.z;
 	//Siempre una esfera
 	obj->Shape = new btSphereShape((x+y+z)/3);
-
 	obj->Transform.setIdentity();
 	obj->Transform.setOrigin(btVector3(actor->Pos.x, actor->Pos.y, actor->Pos.z));
-	btDefaultMotionState* MotionState = new btDefaultMotionState(obj->Transform);
+	obj->MotionState = new btDefaultMotionState(obj->Transform);
 	obj->Inertia = btVector3(0.0f, 0.0f, 0.0f);
 	actor->Object[0].Mass = mass;
 	if(mass > 0.0f) obj->Shape->calculateLocalInertia(mass, obj->Inertia);
-	obj->Body = new btRigidBody(mass, MotionState, obj->Shape, obj->Inertia);
+	obj->Body = new btRigidBody(mass, obj->MotionState, obj->Shape, obj->Inertia);
 	AMG_DynamicWorld->addRigidBody(obj->Body);
 	obj->Body->activate();		// Activa el objeto
 	obj->Body->setActivationState(WANTS_DEACTIVATION);
@@ -373,8 +372,8 @@ void AMG_InitSkinnedActorPhysics(AMG_Skinned_Actor *actor, float mass){
 	obj->Body->setFriction(0);
 	obj->Body->setRollingFriction(10);
 	obj->Body->setRestitution(0);
-	actor->Object[0].phys = 1;
 	obj->type = 0; //Rigid
+	actor->Object[0].phys = 1;
 }
 
 void M3D_SkinnedActorInitPhysics(M3D_SkinnedActor *actor, float mass){
@@ -400,11 +399,11 @@ void AMG_InitMorphingActorPhysics(AMG_Morphing_Actor *actor, float mass){
 	obj->Transform.setIdentity();
 	obj->Transform.setOrigin(btVector3(actor->Pos.x, actor->Pos.y, actor->Pos.z));
 	
-	btDefaultMotionState* MotionState = new btDefaultMotionState(obj->Transform);
+	obj->MotionState = new btDefaultMotionState(obj->Transform);
 	obj->Inertia = btVector3(0.0f, 0.0f, 0.0f);
 	if(actor->Object[0].Mass > 0.0f) obj->Shape->calculateLocalInertia(actor->Object[0].Mass, obj->Inertia);
 	
-	obj->Body = new btRigidBody(actor->Object[0].Mass, MotionState, obj->Shape, obj->Inertia);
+	obj->Body = new btRigidBody(actor->Object[0].Mass, obj->MotionState, obj->Shape, obj->Inertia);
 	AMG_DynamicWorld->addRigidBody(obj->Body);
 	obj->Body->activate();		// Activa el objeto
 	obj->Body->setActivationState(WANTS_DEACTIVATION);
@@ -425,23 +424,55 @@ void M3D_MorphingActorInitPhysics(M3D_MorphingActor *actor, float mass){
 	AMG_InitMorphingActorPhysics((AMG_Morphing_Actor*)actor,mass);
 }
 
-// Quita un modelo 3D de la pila
+////
+void AMG_RemoveBulletObject(amg_mdh *obj){
+	if(!obj) return;
+	// Remove bullet object
+	if (obj->Body){
+		int num = obj->Body->getNumConstraintRefs();
+		for(int j=0;j<num;++j) AMG_DynamicWorld->removeConstraint(obj->Body->getConstraintRef(0));
+	}
+	if (obj->BallConstraint[0])AMG_DynamicWorld->removeConstraint(obj->BallConstraint[0]);
+	if (obj->BallConstraint[1])AMG_DynamicWorld->removeConstraint(obj->BallConstraint[1]);
+	if (obj->HingeConstraint[0])AMG_DynamicWorld->removeConstraint(obj->HingeConstraint[0]);
+	if (obj->HingeConstraint[1])AMG_DynamicWorld->removeConstraint(obj->HingeConstraint[1]);
+	if (obj->m_vehicle) AMG_DynamicWorld->removeVehicle(obj->m_vehicle);
+	if (obj->Body) AMG_DynamicWorld->removeRigidBody(obj->Body);
+	//clean ram
+	if (obj->m_vehicleRayCaster){delete obj->m_vehicleRayCaster; obj->m_vehicleRayCaster = NULL;}
+	if (obj->BallConstraint[0]){delete obj->BallConstraint[0]; obj->BallConstraint[0] = NULL;}
+	if (obj->BallConstraint[1]){delete obj->BallConstraint[1]; obj->BallConstraint[1] = NULL;}
+	if (obj->HingeConstraint[0]){delete obj->HingeConstraint[0]; obj->HingeConstraint[0] = NULL;}
+	if (obj->HingeConstraint[1]){delete obj->HingeConstraint[1]; obj->HingeConstraint[1] = NULL;}
+	if (obj->m_vehicle){delete obj->m_vehicle; obj->m_vehicle = NULL;}
+	if (obj->Body){delete obj->Body; obj->Body = NULL;}
+	if (obj->MotionState) {delete obj->MotionState; obj->MotionState = NULL;}
+	if (obj->Shape){delete obj->Shape; obj->Shape = NULL;}
+	if (obj->hull){delete obj->hull; obj->hull = NULL;}
+	if (obj->sh){delete obj->sh; obj->sh = NULL;}
+	if (obj->tri){delete obj->tri; obj->tri = NULL;}
+}
+
+void M3D_MorphingActorDeletePhysics(M3D_MorphingActor *a){
+	AMG_Morphing_Actor *actor = (AMG_Morphing_Actor *)a;
+	if(!actor->Object[0].phys) return;;
+	amg_mdh *obj = &amg_model_ptr[actor->Object[0].bullet_id];
+	AMG_RemoveBulletObject(obj);
+	// Quitalos de la pila
+	amg_model_ptr[actor->Object[0].bullet_id].md = NULL;
+	actor->Object[0].Mass = 0.0f;
+	actor->Object[0].bullet_id = 0;
+	actor->Object[0].phys = 0;
+}
+
 void AMG_DeleteModelPhysics(AMG_Model *model){
 	for(u8 i=0;i<model->NObjects;i++){		// Elimina de Bullet cada objeto 3D
 		if(!model->Object[i].Physics) return;;
 		if(model->Object[i].ShapeType == AMG_BULLET_SHAPE_NONE) return;
 		amg_mdh *obj = &amg_model_ptr[model->Object[i].bullet_id];
-		// Elimina datos adicionales
-		if(obj->tri) delete obj->tri;
-		if(obj->sh) delete obj->sh;
-		if(obj->hull) delete obj->hull;
-		// Eliminalos del motor Bullet
-		AMG_DynamicWorld->removeRigidBody(obj->Body);
-		delete obj->Body; obj->Body = NULL;
-		delete obj->Shape; obj->Shape = NULL;
-		model->Object[i].Mass = 0.0f; model->Object[i].isGround = 0;
-		// Quitalos de la pila
+		AMG_RemoveBulletObject(obj);
 		amg_model_ptr[model->Object[i].bullet_id].md = NULL;
+		model->Object[i].Mass = 0.0f; model->Object[i].isGround = 0;
 		model->Object[i].bullet_id = 0;
 		model->Object[i].Physics = 0;
 	}
@@ -451,23 +482,30 @@ void M3D_ModelDeletePhysics(M3D_Model *model){
 	AMG_DeleteModelPhysics((AMG_Model *)model);
 }
 
-// Quita un Actor 3D de la pila
-void AMG_DeleteSkinnedActorPhysics(AMG_Skinned_Actor *actor){
+void M3D_ModelBINDeletePhysics(M3D_ModelBIN *m){
+	AMG_BinaryMesh *model = (AMG_BinaryMesh*)m;
+	if(!model->Object[0].Physics) return;;
+	amg_mdh *obj = &amg_model_ptr[model->Object[0].bullet_id];
+	AMG_RemoveBulletObject(obj);
+	// Quitalos de la pila
+	amg_model_ptr[model->Object[0].bullet_id].md = NULL;
+	model->Object[0].bullet_id = 0;
+	model->Object[0].Physics = 0;
+}
 
+void AMG_DeleteSkinnedActorPhysics(AMG_Skinned_Actor *actor){
+	if(!actor->Object[0].phys) return;;
 	amg_mdh *obj = &amg_model_ptr[actor->Object[0].bullet_id];
-	// Elimina datos adicionales
-	if(obj->tri) delete obj->tri;
-	if(obj->sh) delete obj->sh;
-	if(obj->hull) delete obj->hull;
-	// Eliminalos del motor Bullet
-	AMG_DynamicWorld->removeRigidBody(obj->Body);
-	delete obj->Body; obj->Body = NULL;
-	delete obj->Shape; obj->Shape = NULL;
-	actor->Object[0].Mass = 0.0f;
+	AMG_RemoveBulletObject(obj);
 	// Quitalos de la pila
 	amg_model_ptr[actor->Object[0].bullet_id].md = NULL;
+	actor->Object[0].Mass = 0.0f;
 	actor->Object[0].bullet_id = 0;
 	actor->Object[0].phys = 0;
+}
+
+void M3D_SkinnedActorDeletePhysics(M3D_SkinnedActor * actor){
+	AMG_DeleteSkinnedActorPhysics((AMG_Skinned_Actor*)actor);
 }
 
 void AMG_UpdateBody(AMG_Object *model){
@@ -601,7 +639,7 @@ void AMG_InitVehiclePhysics(AMG_Model *model, float mass, float wradius, float w
 	amg_save_object_stack(&model->Object[0]);
 	/// create vehicle
 	amg_mdh *obj = &amg_model_ptr[model->Object[0].bullet_id];
-	
+	model->Object[0].ShapeType = AMG_BULLET_SHAPE_BOX;
 	//drive parameters
 	model->Object[0].Steering = 0;
 	model->Object[0].SteeringInc = 0;
@@ -619,16 +657,14 @@ void AMG_InitVehiclePhysics(AMG_Model *model, float mass, float wradius, float w
 	obj->suspensionStiffness = 40;//Rigidez de amortiguaci贸n
 	obj->suspensionCompression = 10;//Fuerza de amortiguaci贸n
 	obj->connectionHeight = -0.04;//Altura de los ejes respecto al chasis
-	
-	
 	obj->Transform.setIdentity();
 	//Box shape has a size defined by wheels position
 	float X = obj->WheelsXDist*2; float Y = obj->connectionHeight/3; float Z = obj->WheelsZDist*2;
 	obj->Shape = new btBoxShape(btVector3(btScalar(X), btScalar(Y), btScalar(Z)));
-	btDefaultMotionState* myMotionState = new btDefaultMotionState(obj->Transform);
+	obj->MotionState = new btDefaultMotionState(obj->Transform);
 	btVector3 localInertia(0,0,0);
 	if (model->Object[0].Mass != 0) obj->Shape->calculateLocalInertia(model->Object[0].Mass,localInertia);
-	obj->Body = new btRigidBody(model->Object[0].Mass,myMotionState,obj->Shape,localInertia);
+	obj->Body = new btRigidBody(model->Object[0].Mass,obj->MotionState ,obj->Shape,localInertia);
 	obj->Transform.setOrigin(btVector3(model->Object[0].Pos.x,model->Object[0].Pos.y,model->Object[0].Pos.z));
 	
 	obj->Body->setWorldTransform(obj->Transform);
@@ -775,52 +811,72 @@ void M3D_VehicleMove(M3D_Model *model, float velocitator, float deceleratrix, fl
 	if (M3D_KEYS->released.circle) {m->Object[0].Engine = 0;m->Object[0].Brake = 0;}
 }
 
-//constraints
-
-void M3D_ConstraintBall(M3D_Model *m, int obj_number, float pivotx, float pivoty, float pivotz){
+//constraints CRASH when exiting
+void M3D_ConstraintBall(M3D_Model *m, int obj_number, int cons_number, float pivotx, float pivoty, float pivotz){
+	if (cons_number < 0 || cons_number > 1) return;
 	AMG_Model* model = (AMG_Model*)m;
 	//point to point constraint with a breaking threshold
 	amg_mdh *obj = &amg_model_ptr[model->Object[obj_number].bullet_id];
+	if (obj->BallConstraint[cons_number]) return;
 	btVector3 pivotA(pivotx,pivoty,pivotz);
 	obj->Body->setActivationState(DISABLE_DEACTIVATION);
-	obj->BallConstraint = new btPoint2PointConstraint(*obj->Body,pivotA);
-	obj->BallConstraint->setBreakingImpulseThreshold(10.2);
-	AMG_DynamicWorld->addConstraint(obj->BallConstraint);
+	obj->BallConstraint[cons_number] = new btPoint2PointConstraint(*obj->Body,pivotA);
+	obj->BallConstraint[cons_number]->setBreakingImpulseThreshold(10.2);
+	AMG_DynamicWorld->addConstraint(obj->BallConstraint[cons_number],0);
 }
 
-void M3D_ConstraintHinge(M3D_Model *m,int obj_number, float pivotx, float pivoty, float pivotz, int axis){
+void M3D_ConstraintHinge(M3D_Model *m,int obj_number, int cons_number, float pivotx, float pivoty, float pivotz, int axis){
+	if (cons_number < 0 || cons_number > 1) return;
 	AMG_Model* model = (AMG_Model*)m;
-	//Hinge constraint fixed to world
 	amg_mdh *obj = &amg_model_ptr[model->Object[obj_number].bullet_id];
+	amg_mdh *obj2 = &amg_world_static_model_ptr;
+	if (obj->HingeConstraint[cons_number]) return;
+	ScePspFVector3 *p = &model->Object[obj_number].Pos;
 	btVector3 btPivotA(pivotx,pivoty,pivotz); 
+	btVector3 btPivotB(p->x+pivotx,p->y+pivoty,p->z+pivotz); 
 	btVector3 btAxisA(0,0,0); //axis
 	btAxisA[axis] = 1;
-	//btHingeConstraint* spHingeDynAB = NULL;
 	obj->Body->setActivationState(DISABLE_DEACTIVATION);
-	obj->HingeConstraint = new btHingeConstraint(*obj->Body, btPivotA, btAxisA);
-	AMG_DynamicWorld->addConstraint(obj->HingeConstraint);
+	obj->HingeConstraint[cons_number] = new btHingeConstraint(*obj->Body, *obj2->Body, btPivotA, btPivotB, btAxisA, btAxisA);
+	AMG_DynamicWorld->addConstraint(obj->HingeConstraint[cons_number],0);
 }
 
-void M3D_ConstraintHinge2(M3D_Model *m1,int obj_number1, M3D_Model *m2, int obj_number2, float pivotx, float pivoty, float pivotz, float pivot1x, float pivot1y, float pivot1z, int axis){
+void M3D_ConstraintHinge2(M3D_Model *m1,int obj_number1, M3D_Model *m2, int obj_number2, int cons_number, float pivotx, float pivoty, float pivotz, float pivot1x, float pivot1y, float pivot1z, int axis){
+	if (cons_number < 0 || cons_number > 1) return;
 	AMG_Model* model1 = (AMG_Model*)m1;
 	AMG_Model* model2 = (AMG_Model*)m2;
 	//Hinge constraint fixed to world
 	amg_mdh *obj = &amg_model_ptr[model1->Object[obj_number1].bullet_id];
 	amg_mdh *obj2 = &amg_model_ptr[model2->Object[obj_number2].bullet_id];
+	if (obj->HingeConstraint[cons_number]) return;
 	btVector3 btPivotA(pivotx,pivoty,pivotz);
 	btVector3 btAxisA(0,0,0); //axis
 	btVector3 btPivotB(pivot1x,pivot1y,pivot1z);
 	btVector3 btAxisB(0,0,0); //axis
 	btAxisA[axis] = 1;
 	btAxisB[axis] = 1;
-	//btHingeConstraint* spHingeDynAB = NULL;
 	obj->Body->setActivationState(DISABLE_DEACTIVATION);
-	obj->HingeConstraint = new btHingeConstraint(*obj->Body, *obj2->Body, btPivotA, btPivotB, btAxisA, btAxisB);
-	AMG_DynamicWorld->addConstraint(obj->HingeConstraint);
+	obj->HingeConstraint[cons_number] = new btHingeConstraint(*obj->Body, *obj2->Body, btPivotA, btPivotB, btAxisA, btAxisB);
+	AMG_DynamicWorld->addConstraint(obj->HingeConstraint[cons_number],0);
+}
+
+void M3D_ConstraintsRemove(M3D_Model *m, int obj_number, int cons_number){
+	if (cons_number < 0 || cons_number > 1) return;
+	AMG_Model* model = (AMG_Model*)m;
+	//point to point constraint with a breaking threshold
+	amg_mdh *obj = &amg_model_ptr[model->Object[obj_number].bullet_id];
+	if (obj->BallConstraint[cons_number]){
+		AMG_DynamicWorld->removeConstraint(obj->BallConstraint[cons_number]);
+		delete obj->BallConstraint[cons_number]; obj->BallConstraint[cons_number] = NULL;
+	}
+	if (obj->HingeConstraint[cons_number]){
+		AMG_DynamicWorld->removeConstraint(obj->HingeConstraint[cons_number]);
+		delete obj->HingeConstraint[cons_number]; obj->HingeConstraint[cons_number] = NULL;
+	}
 }
 
 void AMG_HingeConstraintMotor(AMG_Model *model, float target_vel, float max_impulse){
-	amg_model_ptr[model->Object[0].bullet_id].HingeConstraint->enableAngularMotor(true, target_vel, max_impulse);
+	//amg_model_ptr[model->Object[0].bullet_id].HingeConstraint[0]->enableAngularMotor(true, target_vel, max_impulse);
 }
 	
 // Actualiza el motor de fisicas
@@ -865,29 +921,28 @@ void M3D_BulletUpdatePhysics(void){
 void AMG_FinishBulletPhysics(void){
 	// Elimina todos los objetos de la pila
 	for(u32 i=0;i<amg_max_objects;i++){
-		if(amg_model_ptr[i].md != NULL){
-			// Eliminalo del motor Bullet
-			AMG_DynamicWorld->removeRigidBody(amg_model_ptr[i].Body);
-			delete amg_model_ptr[i].Body; amg_model_ptr[i].Body = NULL;
-			delete amg_model_ptr[i].Shape; amg_model_ptr[i].Shape = NULL;
-			//amg_model_ptr[i].md->Mass = 0.0f; 
-			//amg_model_ptr[i].md->isGround = 0;
-			// Quitalo de la pila
-			//amg_model_ptr[i].md->bullet_id = 0;
-			amg_model_ptr[i].md = NULL;
-			amg_model_ptr[i].Shape = NULL;
-			amg_model_ptr[i].Body = NULL;
-		}
+		/*if(amg_model_ptr[i].md != NULL){
+			amg_model_ptr[i].md == NULL;
+			AMG_RemoveBulletObject(&amg_model_ptr[i]);
+		}*/
 	}
+	//Delete world constraints
+	int num = amg_world_static_model_ptr.Body->getNumConstraintRefs();
+	for(int j=0;j<num;++j) AMG_DynamicWorld->removeConstraint(amg_world_static_model_ptr.Body->getConstraintRef(0));
+	if (amg_world_static_model_ptr.Body) {
+		AMG_DynamicWorld->removeRigidBody(amg_world_static_model_ptr.Body);
+		delete amg_world_static_model_ptr.Body; amg_world_static_model_ptr.Body = NULL;
+	}
+	
 	// Elimina la pila
 	//free(amg_model_ptr); amg_model_ptr = NULL;
 	amg_max_objects = 0;
 	// Elimina los demas datos
-	delete AMG_DynamicWorld; AMG_DynamicWorld = NULL;
-	delete AMG_PhysicsSolver;
-	delete AMG_WorldBroadphase;
-	delete AMG_WorldDispatcher;
-	delete AMG_CollisionConfiguration;
+	if (AMG_DynamicWorld) {delete AMG_DynamicWorld; AMG_DynamicWorld = NULL;}
+	if (AMG_PhysicsSolver) {delete AMG_PhysicsSolver; AMG_PhysicsSolver = NULL;}
+	if (AMG_WorldBroadphase) {delete AMG_WorldBroadphase; AMG_WorldBroadphase = NULL;}
+	if (AMG_WorldDispatcher) {delete AMG_WorldDispatcher; AMG_WorldDispatcher = NULL;}
+	if (AMG_CollisionConfiguration) {delete AMG_CollisionConfiguration; AMG_CollisionConfiguration = NULL;}
 }
 
 void M3D_BulletFinishPhysics(void){
@@ -947,7 +1002,7 @@ void amg_save_object_stack(void *md){
 			((AMG_Object*) md)->bullet_id = i; i = amg_max_objects;
 		}
 	}
-	if(!done) ;	// Error si no se ha encontrado
+	if(!done) AMG_Error("No free physics slots\nNo hay espacio para objetos con fica",0);// Error si no se ha encontrado
 }
 
 

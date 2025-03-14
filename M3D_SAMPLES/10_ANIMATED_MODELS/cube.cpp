@@ -21,10 +21,13 @@ int main(){
 	M3D_Texture *Font0 = M3D_GetFont(0);
 	M3D_Texture *Font1 = M3D_GetFont(1);
 	
+	M3D_Loading_Start("files/Loading.png",340,240,128,16,0.6);
+	
 	M3D_Model *Mirror = M3D_LoadModelPLY("Files/mirror.ply",0,COLOR_5650);
 	
 	//Load morphing model
-	M3D_MorphingActor *Morph0 = M3D_LoadMorphingActor("Files/morph0.m3m",0,COLOR_4444);
+	M3D_MorphingActor *Morph0 = M3D_LoadMorphingActor("Files/morph0.m3m",0.04,COLOR_4444);
+	M3D_MorphingActorSetLighting(Morph0,0);
 	M3D_MorphingActorConfig(Morph0, 0, 6, 130, 1);
 	
 	//Load skinned models
@@ -35,11 +38,15 @@ int main(){
 	A[1] = M3D_LoadSkinnedActor("Files/plant.m3a",0.02,COLOR_4444);
 	M3D_SkinnedActorConfig(A[1],0,10,60,1,1);
 	A[2] = M3D_LoadSkinnedActor("Files/fox.m3a",0.02,COLOR_4444);
+	M3D_SkinnedActorSetLighting(A[2],0);
 	M3D_SkinnedActorConfig(A[2],2,6,30,1,0);
 	A[3] = M3D_LoadSkinnedActor("Files/dino.m3a",0.02,COLOR_4444);
+	M3D_SkinnedActorConfig(A[3],0,1,6,0,0);
 	M3D_SkinnedActorConfig(A[3],10,13,10,1,0);
 	A[4] = M3D_LoadSkinnedActor("Files/alien.m3a",0.02,COLOR_4444);
 	M3D_SkinnedActorConfig(A[4],1,9,20,1,0);
+	
+	M3D_Loading_Stop();
 	
 	Model = 0;
 	float pos_y = 0;
@@ -79,6 +86,7 @@ int main(){
 		M3D_2DMode(0);		
 
 		M3D_ReadButtons();
+		//BUG HERE, do not held r or L while pressing left or right
 		if (M3D_KEYS->pressed.left) {Model -= 1;} 
 		if (M3D_KEYS->pressed.right) {Model += 1;}
 		if (Model != 5){

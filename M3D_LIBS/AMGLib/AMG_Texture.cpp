@@ -215,7 +215,7 @@ M3D_Texture *M3D_TextureCreate(u16 width, u16 height, u32 psm, u8 load){
 AMG_Texture *AMG_CreateRenderTexture(u16 width, u16 height){
 	//Create texture for render, height is always 272 for some reason
 	if (width > 256 || height > 256) AMG_Error((char*)"Render Texture > 256",(char*)"AMG_CreateRenderTexture");
-	AMG_Texture *tex = AMG_CreateTexture(width,height,GU_PSM_5650,AMG_TEX_VRAM);
+	AMG_Texture *tex = AMG_CreateTexture(width,height,GU_PSM_5650,M3D_IN_RAM);
 	oslVramMgrAllocBlock(width*(height-AMG.ScreenHeight));
 	return tex;
 }
@@ -223,7 +223,7 @@ AMG_Texture *AMG_CreateRenderTexture(u16 width, u16 height){
 M3D_Texture *M3D_RenderTextureCreate(u16 width, u16 height){
 	//Create texture for render, height is always 272 for some reason
 	if (width > 256 || height > 256) AMG_Error((char*)"Render Texture > 256",(char*)"AMG_CreateRenderTexture");
-	AMG_Texture *tex = AMG_CreateTexture(width,height,GU_PSM_5650,AMG_TEX_VRAM);
+	AMG_Texture *tex = AMG_CreateTexture(width,height,GU_PSM_5650,M3D_IN_VRAM);
 	oslVramMgrAllocBlock(width*(height-AMG.ScreenHeight));
 	return (M3D_Texture*)tex;
 }
@@ -269,7 +269,6 @@ AMG_Texture *AMG_LoadTexture(const char *path, u8 load, u32 psm){
 	tex->isVideo = 0;
 	tex->DemoEffect_PlasmaFrame = 0;
 	
-	memset(tex->clut,0,256*4);
 	memset(tex->clut_anim,0,256*4);
 	memset(tex->palframe,0,32*4);
 	memset(tex->palcounter,0,32*4);
@@ -497,9 +496,12 @@ AMG_Texture *AMG_LoadTexture(const char *path, u8 load, u32 psm){
 	  }
 	}
 	oslDeleteImage(img);
+	free(mip1_name);
+	free(mip2_name);
 	
 	AMG_SwizzleTexture(tex);
-	AMG_TransferTextureVram(tex);
+	if (load == 0) AMG_TransferTextureVram(tex);
+	if (load == M3D_IN_VRAM) AMG_TransferTextureVram(tex);
 	
 	//Avoids garbage pixels on textures
 	sceKernelDcacheWritebackInvalidateRange(tex->Data,AMG_GetVramSize(tex->Width,tex->Height,tex->TexFormat));
@@ -576,10 +578,10 @@ void AMG_ConvertTexture(AMG_Texture *tex, u32 psm){
 	}
 	// Actualiza el buffer
 	tex->TexFormat = psm;
-	if(tex->Load == AMG_TEX_RAM){
+	if(tex->Load == M3D_IN_RAM){
 		free(tex->Data); tex->Data = NULL; tex->Data = (u32*) data;
 	}else{
-		tex->Load = AMG_TEX_RAM;
+		tex->Load = M3D_IN_RAM;
 		AMG_FreeVram(tex->Data, (tex->Width*tex->Height)<<2); tex->Data = (u32*) data;
 		AMG_TransferTextureVram(tex);
 	}
@@ -588,7 +590,7 @@ void AMG_ConvertTexture(AMG_Texture *tex, u32 psm){
 // Transfiere una textura de RAM a VRAM
 void AMG_TransferTextureVram(AMG_Texture *tex){
 	if(tex == NULL) return;
-	if(tex->Load == AMG_TEX_VRAM) return;
+	if(tex->Load == M3D_IN_VRAM) return;
 	u32 size0  = AMG_GetVramSize(tex->Width, tex->Height, tex->TexFormat);
 	u32 size01 = AMG_GetVramSize(tex->Next_pow2, tex->Height, tex->TexFormat);
 	u32 size1  = AMG_GetVramSize(tex->M1_Width,tex->M1_Height, tex->TexFormat);
@@ -613,7 +615,7 @@ void AMG_TransferTextureVram(AMG_Texture *tex){
 		else memcpy(vram_ptr2, tex->MipData1, size2);
 	} else {size1 = 0; size2 = 0;}
 	
-	//upload clut in case the image is indexed
+	//upload clut 
 	if ((vram_ptr3 = (u32*)oslVramMgrAllocBlock(256*4)) == NULL) goto stay_in_RAM;
 	else memcpy(vram_ptr3, tex->clut, 256*4);
 	//OK
@@ -624,7 +626,7 @@ void AMG_TransferTextureVram(AMG_Texture *tex){
 		free(tex->MipData1); tex->MipData1 = vram_ptr2;
 	}
 	free(tex->clut); tex->clut = vram_ptr3;
-	tex->Load = AMG_TEX_VRAM;
+	tex->Load = M3D_IN_VRAM;
 	return;
 
 //If something does not fit in VRAM, everything stays in RAM
@@ -635,14 +637,14 @@ stay_in_RAM:
 	if(vram_ptr1 != NULL) AMG_FreeVram(vram_ptr1,size1);
 	if(vram_ptr2 != NULL) AMG_FreeVram(vram_ptr2,size2);
 	if(vram_ptr3 != NULL) AMG_FreeVram(vram_ptr3,256*4);
-	tex->Load = AMG_TEX_RAM;
+	tex->Load = M3D_IN_RAM;
 	return;
 }
 
 // Transfiere una textura de VRAM a RAM
 void AMG_TransferTextureRam(AMG_Texture *tex){
 	if(tex == NULL) return;
-	if(tex->Load == AMG_TEX_RAM) return;
+	if(tex->Load == M3D_IN_RAM) return;
 	u32 size0  = AMG_GetVramSize(tex->Width, tex->Height, tex->TexFormat);
 	u32 size01 = AMG_GetVramSize(tex->RWidth, tex->Height, tex->TexFormat);
 	u32 size1  = AMG_GetVramSize(tex->M1_Width,tex->M1_Height, tex->TexFormat);
@@ -680,7 +682,7 @@ void AMG_TransferTextureRam(AMG_Texture *tex){
 	}
 	AMG_FreeVram(tex->clut,256*4); tex->clut = ram_ptr3;
 	
-	tex->Load = AMG_TEX_RAM;
+	tex->Load = M3D_IN_RAM;
 	return;
 
 //If something does not fit in RAM, everything stays in VRAM
@@ -704,13 +706,12 @@ void AMG_UnloadTexture(AMG_Texture *tex){
 	u32 size2 = AMG_GetVramSize(tex->M2_Width,tex->M2_Height, tex->TexFormat);
 	if(tex->Load == AMG_TEX_RAM){
 		free(tex->Data);
-		if (tex->Data1) free(tex->Data1); 
+		if (tex->Data1 != NULL) free(tex->Data1); 
 		if (tex->NMipmaps){free(tex->MipData);free(tex->MipData1);}
-		if (tex->TexFormat == GU_PSM_T8) free(tex->clut);
-		if (tex->TexFormat == GU_PSM_T4) free(tex->clut);
+		if (tex->clut != NULL) {free(tex->clut);tex->clut = NULL;}
 	}else{
 		AMG_FreeVram(tex->Data,size0);
-		if (tex->Data1) {
+		if (tex->Data1 != NULL) {
 			size01 = AMG_GetVramSize(tex->RWidth, tex->Height, tex->TexFormat);
 			AMG_FreeVram(tex->Data1,size01);
 		}
@@ -718,8 +719,7 @@ void AMG_UnloadTexture(AMG_Texture *tex){
 			AMG_FreeVram(tex->MipData,size1);
 			AMG_FreeVram(tex->MipData1,size2);
 		}
-		if (tex->TexFormat == GU_PSM_T8) AMG_FreeVram(tex->clut, 256*4);
-		if (tex->TexFormat == GU_PSM_T4) AMG_FreeVram(tex->clut, 256*4);
+		if (tex->clut != NULL) AMG_FreeVram(tex->clut, 256*4);
 	}
 	tex->Data = NULL;
 	tex->Data1 = NULL;
@@ -1025,8 +1025,8 @@ M3D_Texture *M3D_LoadRawImage(const char *path){
 		texture_offset+=Image->Next_pow2;
 	}
 	//Convert the pixels to framebuffer format
+	Image->Load = M3D_IN_RAM;
 	if (AMG.PSM != GU_PSM_8888) AMG_ConvertTexture(Image,AMG.PSM);
-	Image->Load = AMG_TEX_RAM;
 	Image->Swizzle = 0;
 	Image->NMipmaps = 0;
 
@@ -1035,6 +1035,8 @@ M3D_Texture *M3D_LoadRawImage(const char *path){
 	free(row_pointers);
 	fclose(fp);
 	png_destroy_read_struct(&png, &info, NULL);
+	
+	//sceKernelDcacheWritebackInvalidateRange(Image->Data,AMG_GetVramSize(Image->Next_pow2,Image->Height,AMG.PSM));
 	
 	return (M3D_Texture*)Image;
 }
@@ -1210,7 +1212,7 @@ void M3D_Print(M3D_Texture *texture, int x, int y, u32 color, int wave_amp, int 
 	u16 fontw = (tex->Width >> 4);
 	u16 fonth = (tex->Height >> 4);
 	s16 _x = x; s16 line_jump = y;
-	char c = 0;
+	unsigned char c = 0;
 	// Calcula la cadena de texto
 	while( j < l){
 		c = text[j++];
@@ -1219,7 +1221,8 @@ void M3D_Print(M3D_Texture *texture, int x, int y, u32 color, int wave_amp, int 
 			_x = (x - fontw);
 			c = 0;
 		}
-		if(c == -61) c = 0;//UTF-8 two byte character
+		//if(c == -61) c = 0;//UTF-8 two byte character
+		//if(c < 0) c += 128;//
 		if(c ==  32) c = 0; //Space
 		if(c !=   0){
 			s16 _y = line_jump + (M3D_Sin(wave_val)*wave_amp);
@@ -1247,73 +1250,6 @@ void M3D_Print(M3D_Texture *texture, int x, int y, u32 color, int wave_amp, int 
 	sceGuColor(0xFFFFFFFF);
 }
 
-
-#ifndef AMG_COMPILE_ONELUA
-
-// Crea un objeto 2D
-void AMG_Create2dObject(AMG_Texture *tex, u32 psm, u8 vram){
-	if(tex == NULL) return;
-	// Convierte la textura, si es necesario
-	tex->TFX = GU_TFX_MODULATE; tex->Filter = GU_NEAREST; tex->MipFilter = GU_LINEAR_MIPMAP_NEAREST;
-	if((psm != GU_PSM_8888) && (psm != tex->TexFormat)){		// Si hay que convertir...
-		if(tex->Load == AMG_TEX_VRAM) return;
-		AMG_ConvertTexture(tex, psm);
-	}
-	
-	// Si la imagen no es potencia de 2...
-	tex->rw = nextPow2(tex->rw);
-	tex->rh = nextPow2(tex->rh);
-	
-	// Transfiere la textura a VRAM, si es necesario
-	if(vram && (tex->Load != AMG_TEX_VRAM)) AMG_TransferTextureVram(tex);
-}
-
-// Dibuja un sprite con texture-caché
-void AMG_DrawSpriteCache(AMG_Texture *tex){
-	if(tex == NULL) return;
-	AMG_EnableTexture(tex);
-	sceGuColor(tex->SprColor);
-	
-	// Dibuja el sprite
-	int start, end;
-	int dx = 0;
-	int x = (tex->X - (tex->Width >> 1));
-	int y = (tex->Y - (tex->Height >> 1));
-	for(start = 0, end = tex->Width; start < end; start += tex->Width, dx += tex->Width){
-		AMG_Vertex_intTV *vertices = (AMG_Vertex_intTV*) sceGuGetMemory(2 * sizeof(AMG_Vertex_intTV));
-		int width = (start + tex->Width) < end ? tex->Width : end-start;
-		vertices[0].u = start; vertices[0].v = 0;
-		vertices[0].x = dx+x; vertices[0].y = y; vertices[0].z = 0;
-		vertices[1].u = start + width; vertices[1].v = tex->Height;
-		vertices[1].x = dx + width + x; vertices[1].y = tex->Height + y; vertices[1].z = 0;
-		sceGuDrawArray(GU_SPRITES, GU_TEXTURE_16BIT | GU_VERTEX_16BIT | GU_TRANSFORM_2D, 2, 0, vertices);
-	}
-}
-
-// Elimina un color de la imagen
-void AMG_DeleteColor(AMG_Texture *tex, u32 color){
-	if(tex == NULL) return;
-	if(tex->TexFormat == GU_PSM_5650) return;
-	u32 i;
-	u16 *d = (u16*) tex->Data;
-	
-	// Borra el color requerido
-	for(i=0;i<(tex->Width*tex->Height);i++){
-		if(tex->TexFormat == GU_PSM_8888){
-			if(tex->Data[i] == color){
-				tex->Data[i] &= ~(0xFF000000);
-			}
-		}else{
-			if(tex->TexFormat == GU_PSM_5551){		// 5551
-				if(d[i] == (color &0xFFFF)) d[i] &= ~(1 << 15);
-			}else{									// 4444
-				if(d[i] == (color &0xFFFF)) d[i] &= ~(0xF << 12);
-			}
-		}
-	}
-}
-
-#endif
 
 // Enable animated texture
 void AMG_Texture3D_Animate(AMG_Texture *tex, u8 xframes, u8 yframes, u8 *anim, float speed){
@@ -1350,7 +1286,7 @@ void M3D_Texture3D_Animate(M3D_Texture *t, u8 xframes, u8 yframes, u8 *anim, flo
 //swizzle/unswizzle functions from oslib
 void AMG_SwizzleTexture(AMG_Texture *tex){
 	if(tex == NULL) return;
-	if(tex->Load == AMG_TEX_VRAM) return;
+	if(tex->Load == M3D_IN_VRAM) return;
 	if(tex->Swizzle) return;
 	if(!tex->Data)AMG_Error((char*)"Texture Swizzle error",(char*)" ");
 	
@@ -1511,7 +1447,7 @@ void M3D_TextureSetMapping(M3D_Texture *t, u32 mapping, u8 l0, u8 l1){
 void AMG_EnableRenderToTexture(AMG_Texture *tex){
 	if(tex == NULL) return;
 	if(tex->Swizzle) AMG_UnswizzleTexture(tex);
-	if(tex->Load != AMG_TEX_VRAM) return;
+	if(tex->Load != M3D_IN_VRAM) return;
 	if (!skip){
 		AMG_Push_Perspective_Matrix(tex->Width,tex->Height,50);
 		sceGuDrawBufferList(tex->TexFormat, (void*)((u32)tex->Data), tex->Width);
@@ -1527,7 +1463,7 @@ void M3D_RenderToTextureEnable(M3D_Texture *t){
 	AMG_Texture *tex = (AMG_Texture*)t;
 	if(tex == NULL) return;
 	if(tex->Swizzle) AMG_UnswizzleTexture(tex);
-	if(tex->Load != AMG_TEX_VRAM) return;
+	if(tex->Load != M3D_IN_VRAM) return;
 	if (!skip){
 		AMG_Push_Perspective_Matrix(tex->Width,tex->Height,50);
 		sceGuDrawBufferList(tex->TexFormat, (void*)((u32)tex->Data), tex->Width);
@@ -1587,7 +1523,13 @@ void M3D_TextureSetFilter(M3D_Texture *t, int filter){
 		tex->MipFilter = GU_LINEAR_MIPMAP_LINEAR;
 	}
 }
-
+ScePspSVector2 M3D_TextureGetSize(M3D_Texture *t){
+	AMG_Texture *tex = (AMG_Texture *)t;
+	ScePspSVector2 v;
+	v.x = tex->Width;
+	v.y = tex->Height;
+	return v;
+}
 
 // Cambia el pixel de una textura
 void AMG_ChangeTexturePixel(AMG_Texture *tex, u32 x, u32 y, u32 color){
@@ -1641,8 +1583,8 @@ void M3D_DrawHealthBar(int x, int y, int health, u32 color, int sizex, int sizey
 
 //Load tiled TMX map "1.10.1" in CSV format
 M3D_MAP *M3D_LoadMapTMX(const char *path, u8 mode, u8 load, u32 psm){
-	unsigned short *map;
-	char tiles_path[64];
+	char tiles_relative_path[64];
+	char tiles_full_path[64];
 	FILE *f = fopen(path,"r");
 	u16 index = 0;
 	char line[256];
@@ -1664,19 +1606,21 @@ M3D_MAP *M3D_LoadMapTMX(const char *path, u8 mode, u8 load, u32 psm){
 	fgets(line,256,f);
 	sscanf(line," <tileset firstgid=\"%i\" name=\"%[^\"]\" tilewidth=\"%i\" tileheight=\"%i\" tilecount=\"%i\"",&id,name,&tilewidth,&tileheight,&tilecount);
 	fgets(line,256,f);
-	sscanf(line,"  <image source=\"%[^\"]\" width=\"%i\" height=\"%i\"/>",tiles_path,&dummy,&dummy);
+	sscanf(line,"  <image source=\"%[^\"]\" width=\"%i\" height=\"%i\"/>",tiles_relative_path,&dummy,&dummy);
 	fgets(line,256,f);
 	fgets(line,256,f);
 	sscanf(line," <layer id=\"%i\" name=\"%[^\"]\" width=\"%i\" height=\"%i\">",&id,name,&width,&height);
  	fgets(line,256,f);
 	sscanf(line," <data encoding=\"csv\">");
-	map = (unsigned short*) calloc (width*height, sizeof(unsigned short));
 	
+	AMG_MAP *m = (AMG_MAP*) calloc(1,sizeof(AMG_MAP));
+
+	m->map = (unsigned short*) calloc (width*height, sizeof(unsigned short));
 	//read tile array
 	for (index = 0; index < width*height; index++){
 		int tile = 0;
 		fscanf(f,"%i,",&tile);
-		map[index] = (unsigned short)(tile-1);
+		m->map[index] = (unsigned short)(tile-1);
 	}
 
 	//skip 5 lines
@@ -1689,58 +1633,60 @@ M3D_MAP *M3D_LoadMapTMX(const char *path, u8 mode, u8 load, u32 psm){
 	fclose(f);
 	
 	//Get complete path for tiles
-	char *pos = strrchr(path,'/');
-	int t = strlen(tiles_path);
-	memcpy(&pos[1],tiles_path,t);
+	int t = strlen(path);
+	memcpy(tiles_full_path,path,t);
+	char *pos = strrchr(tiles_full_path,'/');
+	t = strlen(tiles_relative_path);
+	memcpy(&pos[1],tiles_relative_path,t);
 	pos[t+1] = 0;//end of string
 	
-	OSL_IMAGE *tiles = NULL;
 	if (psm < 6) ;// 5650=0;5551=1;4444=2;8888=3;T4=4;T8=5
 	else psm = GU_PSM_4444;
 	
 	//Does not allow tile animation
-	if (mode == 1) tiles = oslLoadImageFilePNG((char*)path, load | OSL_SWIZZLED, psm);
+	if (mode == 1) m->tiles = oslLoadImageFilePNG((char*)tiles_full_path, load | OSL_SWIZZLED, psm);
 	//To easily animate tiles
-	if (mode == 0) tiles = oslLoadImageFilePNG((char*)path, load | OSL_UNSWIZZLED, psm);
+	if (mode == 0) m->tiles = oslLoadImageFilePNG((char*)tiles_full_path, load | OSL_UNSWIZZLED, psm);
 	
 	//Only a few programs export alpha in indexed images, do not use alpha here.
 	//Instead, if this finds a pure BLUE color 0xFFFF0000 (ABGR), that will be fully transparent.
 	if (psm == GU_PSM_T4 || psm == GU_PSM_T8){//palette from 8 bit images
-		int colors = tiles->palette->nElements;
+		int colors = m->tiles->palette->nElements;
 		for (i = 0; i < colors; i++){
-			if (((u32*)tiles->palette->data)[i] == 0xFFFF0000)
-				((u32*)tiles->palette->data)[i] = 0;
+			if (((u32*)m->tiles->palette->data)[i] == 0xFFFF0000)
+				((u32*)m->tiles->palette->data)[i] = 0;
 		}
 		if (load == OSL_IN_VRAM){
 			OSL_PALETTE *pal = oslCreatePaletteEx(colors,OSL_IN_VRAM,GU_PSM_8888);
-			memcpy(pal->data,tiles->palette->data,colors*4);
-			free(tiles->palette->data); free(tiles->palette);
-			tiles->palette = pal;
+			memcpy(pal->data,m->tiles->palette->data,colors*4);
+			free(m->tiles->palette->data); free(m->tiles->palette);
+			m->tiles->palette = pal;
 		}
 	}
-	
 	osl_colorKeyEnabled = 0;
-	if(!tiles) AMG_Error((char*)"File not found / Archivo no encontrado",path);
-	OSL_MAP *oslmap = oslCreateMap(tiles,map,tilewidth,tileheight,width,height,OSL_MF_U16);
-	return (M3D_MAP*) oslmap;
+	if(m->tiles==NULL) AMG_Error((char*)"File not found / Archivo no encontrado",tiles_full_path);
+	m->omap = oslCreateMap(m->tiles,m->map,tilewidth,tileheight,width,height,OSL_MF_U16);
+	return (M3D_MAP*)m;
 }
 
 void M3D_MapSetScroll(M3D_MAP *map, int x, int y){
-	OSL_MAP *m = (OSL_MAP*) map;
-	m->scrollX = x;
-	m->scrollY = y;
+	AMG_MAP *m = (AMG_MAP*)map;
+	if(m==NULL) return;
+	m->omap->scrollX = x;
+	m->omap->scrollY = y;
 }
 
 void M3D_MapAnimateTiles(M3D_MAP *m, int slot, int tile, int start_tile, u8 anim_size, float speed){
-	OSL_MAP *map = (OSL_MAP*)m;
-	int psm = map->img->pixelFormat;
-	u8 *data = (u8*)map->img->data;
+	AMG_MAP *map = (AMG_MAP*)m;
+	if(map==NULL) return;
+	int psm = map->omap->img->pixelFormat;
+	u8 *data = (u8*)map->omap->img->data;
 	u8 *src;
 	u8 *dst;
-	int twidth = map->tileX;
-	int theight = map->tileY;
-	int iwidth = map->img->sizeX;
-	int tilesY = map->img->sizeX/twidth;
+	int twidth = map->omap->tileX;
+	int theight = map->omap->tileY;
+	int iwidth = map->omap->img->sizeX;
+	int tilesY = map->omap->img->sizeX/twidth;
 	int i;
 	int tile_new = 0;
 
@@ -1779,17 +1725,19 @@ void M3D_MapAnimateTiles(M3D_MAP *m, int slot, int tile, int start_tile, u8 anim
 }
 
 void M3D_DrawMap(M3D_MAP *map){
-	OSL_MAP *m = (OSL_MAP*) map;
-	oslDrawMapSimple(m);
+	AMG_MAP *m = (AMG_MAP*)map;
+	if(m==NULL) return;
+	oslDrawMapSimple(m->omap);
 }
 
-void M3D_MapUnload(M3D_MAP *m){
-	OSL_MAP* map = (OSL_MAP*) m;
-	free(map->map); map->map = NULL;
-	if (map->img->location == OSL_IN_RAM){
-    }
-	oslDeleteImage(map->img);
-	oslDeleteMap(map);
+void M3D_MapUnload(M3D_MAP *map){
+	AMG_MAP *m = (AMG_MAP*)map;
+	if(m==NULL) return;
+	free(m->omap->map); m->omap->map = NULL;
+	//if (m->omap->img->location == OSL_IN_RAM){}
+	oslDeleteImage(m->omap->img);
+	oslDeleteMap(m->omap);
+	free(m); m = NULL;
 }
 
 
@@ -1827,13 +1775,13 @@ void AMG_LoadFont(int slot, char *path, u8 load, u32 psm){
 		AMG_UnloadTexture(AMG_Font1);
 		AMG_Font1 = AMG_LoadTexture(path,AMG_TEX_RAM,psm);
 		AMG_SwizzleTexture(AMG_Font1);
-		if (load == AMG_TEX_VRAM) AMG_TransferTextureVram(AMG_Font1);
+		if (load == M3D_IN_VRAM) AMG_TransferTextureVram(AMG_Font1);
 	}
 	if (slot == 2){
 		AMG_UnloadTexture(AMG_Font2);
 		AMG_Font2 = AMG_LoadTexture(path,AMG_TEX_RAM,psm);
 		AMG_SwizzleTexture(AMG_Font2);
-		if (load == AMG_TEX_VRAM) AMG_TransferTextureVram(AMG_Font2);
+		if (load == M3D_IN_VRAM) AMG_TransferTextureVram(AMG_Font2);
 	}
 }
 
@@ -1846,10 +1794,10 @@ u32 AMG_Font1_PAL[16] = {
 };
 
 u32 AMG_Font2_PAL[16] = {
-	0x00000000,0xff000000,0xffb6554c,0xffd96054,
-	0xffe47069,0xffff8771,0xffff8e7f,0xffff9c8e,
-	0xffffaa9c,0xfff9afa4,0xfffebbae,0xffffc6b8,
-	0xffffd4c6,0xffffd4d4,0xffffe6e5,0xfffff1f1
+	0x00000000,0xff000000,0xff7d7d7d,0xff878787,
+	0xff919191,0xff9b9b9b,0xffa5a5a5,0xffafafaf,
+	0xffb9b9b9,0xffc3c3c3,0xffcdcdcd,0xffd7d7d7,
+	0xffe1e1e1,0xffebebeb,0xfff5f5f5,0xffffffff
 };
 
 //FONT DATA (4BIT / 16 COLORS)
@@ -5301,6 +5249,7 @@ void M3D_PalettesCycle(int type, void *image, u8 *setpalettes, u8 blend){
 	u8 npal = 0;
 	if (type == 0){
 		AMG_Texture *img = (AMG_Texture*) image;
+		if(!img) return;
 		for (i=0;i<size;i++){
 			u8 *cycle = (u8*) &setpalettes[1+(i*4)];
 			u32 pal_offset = cycle[2];
@@ -5337,15 +5286,18 @@ void M3D_PalettesCycle(int type, void *image, u8 *setpalettes, u8 blend){
 		}
 	}
 	if (type != 0){
-		OSL_IMAGE *img; OSL_MAP *map; u32 *pal = NULL;
+		OSL_IMAGE *img; AMG_MAP *m; u32 *pal = NULL;
 		if (type == 1) {//OSL_IMAGE
 			img = (OSL_IMAGE*)image;
+			if(!img) return;
 			u32 format = (u32) img->pixelFormat;
 			if (format != GU_PSM_T4 && format != GU_PSM_T8) return;
 			pal = (u32*) img->palette->data; 
 		}
 		if (type == 2){//OSL_MAP
-			map = (OSL_MAP*) image;
+			m = (AMG_MAP *)image;
+			OSL_MAP *map = m->omap;
+			if (!map) return;
 			u32 format = (u32) map->img->pixelFormat;
 			if (format != GU_PSM_T4 && format != GU_PSM_T8) return;
 			pal = (u32*) map->img->palette->data; 
@@ -5529,7 +5481,7 @@ u16 AMG_Plasma_U[1024] = {0};
 M3D_Texture *M3D_PlasmaTextureCreate(const char *path){
 	int i;
 	//Create texture
-	AMG_Texture *tex = AMG_CreateTexture(128,128,GU_PSM_T8,AMG_TEX_VRAM);
+	AMG_Texture *tex = AMG_CreateTexture(128,128,GU_PSM_T8,M3D_IN_VRAM);
 	if (!tex) return 0;
 	//load colors from image
 	OSL_IMAGE *img = oslLoadImageFilePNG((char*)path, OSL_IN_RAM | OSL_UNSWIZZLED, GU_PSM_8888);
@@ -5582,7 +5534,7 @@ void M3D_PlasmaTextureUpdate(M3D_Texture *t,int px,int py,float scale,int speed)
 void M3D_Plasma2DSet(const char *path){
 	int i;
 	//Create texture
-	if (!AMG_2DPlasma_Texture) AMG_2DPlasma_Texture = AMG_CreateTexture(256,4,GU_PSM_T8,AMG_TEX_VRAM);
+	if (!AMG_2DPlasma_Texture) AMG_2DPlasma_Texture = AMG_CreateTexture(256,4,GU_PSM_T8,M3D_IN_VRAM);
 	if (!AMG_2DPlasma_Texture) return;
 	//load colors from image
 	OSL_IMAGE *img = oslLoadImageFilePNG((char*)path, OSL_IN_RAM | OSL_UNSWIZZLED, GU_PSM_8888);

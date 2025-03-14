@@ -63,7 +63,7 @@ int main(int argc, char **argv){
 			M3D_ModelRotate(Crate,0,0,1,2);
 			M3D_ModelSetPosition(Crate,0,0,M3D_Sin(angle2+=0.03)*16,0);
 			M3D_ModelRender(Crate,0);
-			//Draw some ols style CRT OSD text
+			//Draw some old style CRT OSD text
 			M3D_2DMode(1);
 			M3D_Print(Font8,2,2,0xff00ff00,0,0,0,(char*)"CH1");
 			M3D_2DMode(0);

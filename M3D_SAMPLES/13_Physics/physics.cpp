@@ -104,9 +104,9 @@ int main(){
 	for (i = 0; i < 8;i++) M3D_ModelInitPhysics(Wood[i]);
 	
 	//BUILD AN OLD STYLE SUSPENSION BRIDGE
-	M3D_ConstraintHinge(Wood[0],0, -0.5,0,0, 2);
-	for (i = 0; i < 7;i++) M3D_ConstraintHinge2(Wood[i],0,Wood[i+1],0,  0.5,0,0, -0.5,0,0, 2);
-	M3D_ConstraintHinge(Wood[7],0, 0.5,0,0, 2);
+	M3D_ConstraintHinge(Wood[0],0, 0, -0.5,0,0, 2);
+	for (i = 0; i < 7;i++) M3D_ConstraintHinge2(Wood[i],0,Wood[i+1],0, 1, 0.5,0,0, -0.5,0,0, 2);
+	M3D_ConstraintHinge(Wood[7],0, 0, 0.5,0,0, 2);
 
 	//SET BALL 
 	M3D_ModelConfPhysics(Ball,0, 0.1, M3D_BULLET_SHAPE_SPHERE);
@@ -153,7 +153,7 @@ int main(){
 
 		M3D_2DMode(1);
 			M3D_Printf(Font1,0, 8,0xffddffdd,0,0,0,"       PHYSICS (BULLET)      ");
-			M3D_Printf(Font0,0,32,0xffffffff,0,0,0,"DIR PAD = move ball");
+			M3D_Printf(Font0,0,32,0xffffffff,0,0,0,"DIR PAD = move ball; BREAK BRIDGE = L; RESET BRIDGE = R");
 			M3D_Printf(Font0,0,64,0xffffffff,0,0,0,"Ball on top of: %s",Ball_Ground_Material);
 		M3D_2DMode(0);	
 
@@ -165,6 +165,10 @@ int main(){
 		}
 
 		M3D_ReadButtons();
+		if (M3D_KEYS->pressed.L) M3D_ConstraintsRemove(Wood[0],0,1);
+		if (M3D_KEYS->pressed.R){
+			M3D_ConstraintHinge2(Wood[0],0,Wood[1],0, 1, 0.5,0,0, -0.5,0,0, 2);
+		}
 		if (M3D_KEYS->held.left) M3D_ModelSetForce(Ball,0,-0.005,0,0);
 		if (M3D_KEYS->held.right) M3D_ModelSetForce(Ball,0,0.005,0,0);
 		if (M3D_KEYS->held.up) M3D_ModelSetForce(Ball,0,0,0,-0.005);

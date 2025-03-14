@@ -55,10 +55,9 @@ int main(){
 	
 	M3D_SetMipMapping(1,0.6);
 	
+	M3D_Loading_Start("files/Loading.png",0,0,128,128,0.04);
+
 	M3D_Texture *BKG = M3D_LoadRawImage("Files/sky.png");
-	
-	M3D_Printf(Font0, 8,8,0xffffffff,0,0,0,"LOADING");
-	M3D_updateScreen(0x00000000);
 	
 	M3D_Texture *Shine = M3D_LoadTexture("files/20_shine.png",0,COLOR_4444);
 	M3D_TextureSetMapping(Shine,M3D_ENVIRONMENT_MAP, 1, 2);
@@ -66,7 +65,7 @@ int main(){
 	M3D_Model *Reflected = M3D_LoadModelPLY("Files/cube.ply",0.01,COLOR_T4);
 	M3D_Model *Mirror = M3D_LoadModelPLY("Files/mirror.ply",0,COLOR_T4);
 	
-	M3D_Model *Models[28];
+	M3D_Model *Models[28];//Memory leak bug solved! This model array can now be as big as you want.
 	
 	Models[0] = M3D_LoadModelPLY("Files/0_star.ply",0,0);
 	Models[1] = M3D_LoadModel("Files/1_star.obj",0,0);
@@ -76,18 +75,12 @@ int main(){
 	Models[5] = M3D_LoadModelPLY("Files/5_star.ply",0,0);
 	Models[6] = M3D_LoadModel("Files/6_star.obj",0,0);
 	
-	M3D_Printf(Font0, 8,8,0xffffffff,0,0,0,"LOADING.");
-	M3D_updateScreen(0x00000000);
-	
 	Models[7] = M3D_LoadModel("Files/7_star.obj",0,0);
 	Models[8] = M3D_LoadModelPLY("Files/8_star.ply",0,0);
 	Models[9] = M3D_LoadModelPLY("Files/9_star.ply",0,0);
 	Models[10] = M3D_LoadModelPLY("Files/10_star.ply",0,0);
 	Models[11] = M3D_LoadModelPLY("Files/11_star.ply",0,0);
 	Models[12] = M3D_LoadModel("Files/12_star.obj",0,0);
-	
-	M3D_Printf(Font0, 8,8,0xffffffff,0,0,0,"LOADING..");
-	M3D_updateScreen(0x00000000);
 	
 	Models[13] = M3D_LoadModel("Files/13_star.obj",0,0);
 	Models[14] = M3D_LoadModel("Files/14_star.obj",0,0);
@@ -97,9 +90,6 @@ int main(){
 	
 	Models[18] = M3D_LoadModelPLY("Files/18_glossy.ply",0,0);
 	M3D_ModelSetTextureMapping(Models[18],0,0,0,M3D_ENVIRONMENT_MAP);
-	
-	M3D_Printf(Font0, 8,8,0xffffffff,0,0,0,"LOADING...");
-	M3D_updateScreen(0x00000000);
 	
 	Models[19] = M3D_LoadModelPLY("Files/19_glossy.ply",0,COLOR_4444);
 	M3D_ModelSetTextureMapping(Models[19],0,0,0,M3D_ENVIRONMENT_MAP);
@@ -118,6 +108,8 @@ int main(){
 	Models[24] = M3D_LoadModelPLY("Files/animated.ply",0,COLOR_4444);
 	M3D_ModelTexture3D_Animate(Models[24],0,0,4,4,custom_texture_animation,0.2);
 	M3D_ModelSetTextureFilter(Models[24],0,0,0,0);
+	
+	M3D_Loading_Stop();
 
 	int model_number = 0;
 	float bounce = 0;

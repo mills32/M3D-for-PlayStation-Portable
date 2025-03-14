@@ -106,15 +106,18 @@ triBlendMode TRI_BLEND_MODE_ALPHA_ADD = { GU_ADD, GU_SRC_ALPHA, GU_FIX, 0, 0xFFF
 triBlendMode TRI_BLEND_MODE_SUB = { GU_REVERSE_SUBTRACT, GU_FIX, GU_FIX, 0xFFFFFFFF, 0xFFFFFFFF };
 triBlendMode TRI_BLEND_MODE_ALPHA_SUB = { GU_REVERSE_SUBTRACT, GU_SRC_ALPHA, GU_FIX, 0, 0xFFFFFFFF };
 
+int AMG_PARTICLE_SYSTEM_NUMBER = 0;
 
 void AMG_InitParticleSystem(int number){
 	// FIXME: This is not the right way to do as it will cause the particle manager to try and free pointers from inside the array
-	AMG_ParticleSystem = (triParticleSystem*)calloc( sizeof(triParticleSystem)*number,1);
-	AMG_ParticleEmitter = (triParticleEmitter*)calloc( sizeof(triParticleEmitter)*number,1);
+	AMG_ParticleSystem = (triParticleSystem*)calloc(number,sizeof(triParticleSystem));
+	AMG_ParticleEmitter = (triParticleEmitter*)calloc(number,sizeof(triParticleEmitter));
 	
 	int i;
 	for (i = 0; i < number; i++) triParticleSystemConstructor( &AMG_ParticleSystem[i] );
+	AMG_PARTICLE_SYSTEM_NUMBER = number;
 }
+
 
 void M3D_ParticleSystemInit(int number){
 	AMG_InitParticleSystem(number);
@@ -144,8 +147,7 @@ void AMG_LoadParticleSystem(int number,char *path, signed long emitter_type, int
 	if (TRI_PARTMAN.systems==0) TRI_PARTMAN.systems = p;
 	else {
 		triParticleSystem* s = TRI_PARTMAN.systems;
-		while (s->next!=0)
-			s = s->next;
+		while (s->next!=0) s = s->next;
 		s->next = p;
 	}
 	
@@ -291,7 +293,6 @@ void M3D_ParticleStop(int emitter){
 }
 
 
-//?????????????????????
 void AMG_RemoveParticleManager( signed long id ){
 	triParticleSystem* s = TRI_PARTMAN.systems;
 	while (s!=0){
@@ -305,6 +306,28 @@ void AMG_RemoveParticleManager( signed long id ){
 		}
 		s = s->next;
 	}
+}
+
+void M3D_ParticleSystemUnload(){
+	for (int i = 0; i < AMG_PARTICLE_SYSTEM_NUMBER; i++){
+		triParticleSystem* s = &AMG_ParticleSystem[i];
+		if (s == 0) return;
+		if (s->Texture) {AMG_UnloadTexture((AMG_Texture*)s->Texture); s->Texture = NULL;}
+		if (s->particles!=0){free(s->particles);s->particles = 0;s->numParticles = 0;}
+		if (s->particleStack!=0){free(s->particleStack);s->particleStack = 0;}
+		if (s->vortices!=0) {free(s->vortices);s->vortices = 0;}
+		if (s->vorticesStack!=0) {free(s->vorticesStack); s->vorticesStack = 0;s->numVortices = 0;}
+		if (s->vertices[0]!=0) {free(s->vertices[0]);s->vertices[0] = 0;}
+		if (s->vertices[1]!=0) {free(s->vertices[1]);s->vertices[1] = 0;s->numVertices = 0;}
+		s->renderMode = GU_SPRITES;
+		s->texMode = GU_TFX_MODULATE;
+		s->useBillboards = 0;
+		s->next = 0;
+		memset( s->actions, 0, sizeof(s->actions) );
+	}
+	triParticleManagerDestroy();
+	if(AMG_ParticleSystem) {free(AMG_ParticleSystem);AMG_ParticleSystem = NULL;}
+	AMG_PARTICLE_SYSTEM_NUMBER = 0;
 }
 
 void triParticleEmitterConstructor( triParticleEmitter *e, signed long emitterType ){
@@ -424,8 +447,6 @@ void triParticleEmitterConstructor( triParticleEmitter *e, signed long emitterTy
 		break;
 	}
 }
-
-
 
 
 void triParticleSystemConstructor( triParticleSystem* s )
@@ -1343,7 +1364,7 @@ void triParticleManagerDestroy()
 		s->emitter = NULL;
 		AMG_UnloadTexture((AMG_Texture*)s->Texture);
 		triParticleSystemFree(s);
-		free(s);
+		//free(s);
 		s = next;
 	}
 	TRI_PARTMAN.numSystems = 0;

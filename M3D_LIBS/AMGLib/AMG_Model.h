@@ -73,6 +73,25 @@ typedef struct Color_RGBA
 	u8 a;
 }Color_RGBA;
 
+
+#ifdef AMG_DOC_ENGLISH
+/**
+ * @struct
+ * @brief OSL_MAP
+ */
+#else
+/**
+ * @struct
+ * @brief OSL_MAP
+ */
+#endif
+typedef struct{
+	unsigned short *map;
+	OSL_IMAGE *tiles;
+	OSL_MAP *omap;
+}AMG_MAP;
+
+
 #ifdef AMG_DOC_ENGLISH
 /**
  * @struct
@@ -176,8 +195,8 @@ typedef struct{
 	ScePspFVector4 *NormalMap;					/**< vectores de normales / Normal vectors */
 	u32 Start, End;								/**< Las caras que se van a dibujar (número de triángulos) / Faces to draw (triangle number) */
 	// INTERNO
-	char *mtlname;								/**< Uso interno del sistema, no modificar / Internal usage */
-	u8 sel;										/**< Uso interno del sistema, no modificar / Internal usage */
+	char mtlname[128];							/**< Uso interno del sistema, no modificar / Internal usage */
+	u32 sel;									/**< Uso interno del sistema, no modificar / Internal usage */
 }AMG_ObjectGroup;
 
 #ifdef AMG_DOC_ENGLISH
@@ -210,8 +229,8 @@ typedef struct{
 	AMG_Vertex_V *OutLine;                      /**< Borde del objeto */
 	u32 Flags;									/**< Los flags de renderizado (no escribir) / Rendering flags (don't write) */
 	u8 TriangleSize;							/**< Tamaño de un triángulo / Triangle size in bytes (don't write) */		
-	ScePspFVector3 *BBox;						/**< Bounding Box */
-	ScePspFVector3 *tBBox;						/**< Bounding Box transformada / transformed Bounding Box*/
+	ScePspFVector3 BBox[4] = {0};				/**< Bounding Box */
+	ScePspFVector3 tBBox[4] = {0};				/**< Bounding Box transformada / transformed Bounding Box*/
 	ScePspFVector3 Centre, tCentre;				/**< Centro del objeto 3D (transformado) */
 	float CelShadingScale;						/**< Tamaño del contorno en Cel-Shading (1.0 - 1.5) / Outline size for Cel-Shading (1.0 - 1.5) */
 	u32 OutlineColor;							/**< Color del contorno del Cel-Shading / Outline color for Cel-Shading */
@@ -365,7 +384,7 @@ typedef struct {
 	int loop;
 	float speed;
 	float morphoweight;
-	ScePspFVector3 *BBox;
+	ScePspFVector3 BBox[2];
 // Motor fisico BULLET
 	int phys;
 	float Mass;									/**< Masa del objeto / Object mass */
@@ -420,8 +439,8 @@ typedef struct{
 
 
 typedef struct {
-	unsigned char resolution;
-	int mode;
+	u32 resolution;
+	u32 mode;
 	float size;
 	float px0;
 	float py0;
@@ -429,9 +448,9 @@ typedef struct {
 	float py1;
 	float angle;
 	float strength;
-	ScePspFVector3 __attribute__((aligned(64))) Pos;
-	ScePspFVector3 __attribute__((aligned(64))) Rot;
-	ScePspFVector3 __attribute__((aligned(64))) Scale;
+	ScePspFVector3 __attribute__((aligned(16))) Pos;
+	ScePspFVector3 __attribute__((aligned(16))) Rot;
+	ScePspFVector3 __attribute__((aligned(16))) Scale;
 	AMG_Texture *Texture;
 	AMG_Vertex_TNV *vertices;
 	float *points;

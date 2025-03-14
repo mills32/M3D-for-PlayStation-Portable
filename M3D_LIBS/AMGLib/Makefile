@@ -2,7 +2,8 @@ TARGET_LIB = libAMG.a
 OBJS = pspDveManager.o AMG_VFPU.o AMG_Multimedia.o AMG_Physics.o AMG_triParticle.o AMG_User.o AMG_3D.o AMG_Texture.o  AMG_Model.o AMG_ModelAnim.o
 
 INCDIR = 
-CFLAGS = -O2 -G0 -Wall -Wcast-align
+CFLAGS = -O2 -G0 -Wall 
+#-Wcast-align
 CXXFLAGS = $(CFLAGS) -fno-exceptions -fno-rtti
 ASFLAGS = $(CFLAGS)
 

@@ -27,7 +27,7 @@ int main(){
 	M3D_ModelSetMultiTexture(Ground,0,0,Shine);
 
 	M3D_BulletInitPhysics(256, 4);
-	M3D_BulletSetGravity(0, -30.0f,0);
+	M3D_BulletSetGravity(0, -20.0f,0);
 	
 	M3D_ModelConfPhysics(Ground,0, 0, M3D_BULLET_SHAPE_CONVEXHULL);
 	M3D_ModelInitPhysics(Ground);

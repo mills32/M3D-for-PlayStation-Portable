@@ -13,7 +13,7 @@ int main(){
 	M3D_Texture *Font1 = M3D_GetFont(1);
 	
 	//light
-	M3D_LightSet(0,M3D_LIGHT_DIRECTIONAL,RGBA(255,255,255,255),RGBA(180,180,180,255),RGBA(90,90,90,255));
+	M3D_LightSet(0,M3D_LIGHT_DIRECTIONAL,RGBA(255,255,255,255),RGBA(255,255,255,255),RGBA(60,60,60,255));
 	M3D_LightSetPosition(0,-0.4,0.6,0.2);
   
 	// Crea una camara
@@ -25,14 +25,14 @@ int main(){
 	M3D_SetMipMapping(1,0.3);
 	
 	// load
-	M3D_NurbsSurface *Water = M3D_CreateNurbsSurface("Files/sea.png",12,16);
+	M3D_NurbsSurface *Water = M3D_CreateNurbsSurface("Files/sea.png",COLOR_T4,12,16);
 	M3D_Texture *Brillo = M3D_LoadTexture("Files/shine.png",0,COLOR_4444);
 	M3D_TextureSetMapping(Brillo,M3D_ENVIRONMENT_MAP, 1, 2);
 
 	M3D_Model *Ship = M3D_LoadModel("Files/ship.obj",0.01,COLOR_4444);
 	M3D_NurbsSetMapping(Water,1);
 	
-	M3D_Model *Sky = M3D_LoadModel("Files/sky.obj",0,COLOR_8888);
+	M3D_Model *Sky = M3D_LoadModel("Files/sky.obj",0,COLOR_5650);
 	M3D_ModelSetLighting(Sky,0,0);
 	M3D_ModelSetMultiTexture(Ship,0,0,Brillo);
 	

@@ -18,8 +18,7 @@ int main(int argc, char* argv[]){
 	M3D_Camera *camera = M3D_CameraInit();
 	M3D_InitMatrixSystem(45.0f,0.5,100,1);
 
-	M3D_NurbsSurface *Surface = M3D_CreateNurbsSurface("texture.png",4,7);
-	//M3D_NurbsDelete(Surface);
+	M3D_NurbsSurface *Surface = M3D_CreateNurbsSurface("texture.png",COLOR_5650,4,7);
 
 	// run sample
 	float angle = 0;
@@ -31,11 +30,12 @@ int main(int argc, char* argv[]){
 		M3D_CameraSetEye(camera,0,0,0);
 		M3D_CameraSet(camera);
 
-		M3D_LightEnable(0);	
-
+		M3D_LightEnable(0);
+		
 		M3D_NurbsRotate(Surface,0,0.01,0);
 		if (mode == 2) M3D_NurbsSurfaceSet(Surface,mode,-2,-2,1,0,0.1,angle);
 		else M3D_NurbsSurfaceSet(Surface,mode,0,0,0,0,0.4,angle);
+		
 		M3D_NurbsSurfaceRender(Surface);
 		
 		M3D_2DMode(1);

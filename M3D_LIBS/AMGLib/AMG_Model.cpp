@@ -39,12 +39,13 @@ void AMG_RenderStyle(u8 Render_M){
 }
 
 // Obten el directorio de un archivo
+char AMG_OBJ_MTL_DIR[128] = {0};
 char *getdir(const char *path){
-	char *dir = strdup(path);
-	char *s = strrchr(dir, '/');
+	memcpy(AMG_OBJ_MTL_DIR,path,128);
+	char *s = strrchr(AMG_OBJ_MTL_DIR, '/');
 	if(s) s[1]   = '\0';
-	else dir[0] = '\0';
-	return dir;
+	else AMG_OBJ_MTL_DIR[0] = '\0';
+	return AMG_OBJ_MTL_DIR;
 }
 
 //A copy of oslDrawLine but with one color per point
@@ -103,13 +104,13 @@ AMG_BinaryMesh *AMG_LoadBinaryMesh(const char *path, u32 psm){
 	sceKernelDcacheWritebackInvalidateRange(model->Object[0].Data,data_size);
 	
 	//get texture with the same name as the file
-	char *texturename = (char*) calloc (128, sizeof(char));
+	char texturename[128] = {0};
 	strncpy(texturename,path,127);
 	texturename[strlen(path)-4] = 0;
 	strcat(texturename,".png");
 	int result = access(texturename, F_OK);
 	if (result == 0) {
-		AMG_Texture *texture = AMG_LoadTexture(texturename,AMG_TEX_RAM,psm);
+		AMG_Texture *texture = AMG_LoadTexture(texturename,M3D_IN_VRAM,psm);
 		if (texture) model->Object[0].Texture = texture;
 		else model->Object[0].Texture = NULL;
 	} else model->Object[0].Texture = NULL;
@@ -168,8 +169,15 @@ void M3D_ModelBINRender(M3D_ModelBIN *mesh, u32 offset){
 	AMG_RenderBinaryMesh(m,offset);
 }
 
-//Add set pos, set rot etc
-
+void M3D_ModelBINUnload(M3D_ModelBIN *m){
+	AMG_BinaryMesh *model = (AMG_BinaryMesh*)m;
+	if(model == NULL) return;
+	MeshModel *Object = &model->Object[0];
+	AMG_UnloadTexture(Object->Texture);
+	if(Object->Data) {free(Object->Data);Object->Data = NULL;}
+	if(Object) {free(Object);Object = NULL;}
+	if(model) {free(model); model = NULL;}
+}
 
 // Carga un modelo en formato PLY
 AMG_Model *AMG_LoadModelPLY(const char *path, float css, u32 psm){
@@ -182,17 +190,15 @@ AMG_Model *AMG_LoadModelPLY(const char *path, float css, u32 psm){
 	AMG_Vertex_CTV *ctv = NULL;	//vertex+texture+vertex color
 	AMG_Vertex_TCNV *ttcnv = NULL;//vertex+normal+texture+vertex color
 	AMG_Vertex_TCNV *ftcnv = NULL;
-	AMG_Vertex_V *outl = NULL;
 
 	// Crea el modelo 3D
-	AMG_Model *model = NULL;
-	model = (AMG_Model*) calloc (1, sizeof(AMG_Model));
+	AMG_Model *model = (AMG_Model*) calloc (1, sizeof(AMG_Model));
 	FILE *f = fopen(path, "rb");
 	
 	if(f == NULL){ AMG_Error((char*)"File not found / Archivo no encontrado", path);}
-{
+	char line[128] = {0};
+
 	model->CelShading = 0;
-	
 	uint32_t *vindex; 
 	uint32_t vtx = 0;
 	uint32_t nvindex = 0;
@@ -204,8 +210,6 @@ AMG_Model *AMG_LoadModelPLY(const char *path, float css, u32 psm){
 	u8 vertex_rgb  = 0;
 	u8 _mode = 0;
 	uint32_t i = 0;
-
-	char *line = (char*) calloc (128, sizeof(char));
 
 	int colorR,colorG,colorB = 0;
 	
@@ -221,10 +225,6 @@ AMG_Model *AMG_LoadModelPLY(const char *path, float css, u32 psm){
 	model->Object[0].Data = NULL;
 	model->Object[0].Triangles = NULL;
 	model->Object[0].Flags = (GU_VERTEX_32BITF | GU_TRANSFORM_3D);	// Flags por defecto
-	model->Object[0].BBox = NULL;
-	model->Object[0].BBox = (ScePspFVector3*) calloc (2, sizeof(ScePspFVector3));
-	model->Object[0].tBBox = NULL;
-	model->Object[0].tBBox = (ScePspFVector3*) calloc (2, sizeof(ScePspFVector3));
 	model->Object[0].CelShadingScale = 1.025f;
 	model->Object[0].OutLine = NULL;
 	model->Object[0].DrawBehind = 0;
@@ -246,7 +246,7 @@ AMG_Model *AMG_LoadModelPLY(const char *path, float css, u32 psm){
 	model->Object[0].ShapeType = 0;
 	model->Object[0].Collision = 0;
 	model->Object[0].CollidedWith = 0;
-	model->Object[i].vmax = 300.0f;
+	model->Object[0].vmax = 300.0f;
 
 	nvtx = 0; nobj = 0; 
 	//CUENTA MATERIALES DE CADA OBJETO
@@ -262,17 +262,14 @@ AMG_Model *AMG_LoadModelPLY(const char *path, float css, u32 psm){
 	model->Object[0].Group[0].Specular = GU_RGBA(0xFF, 0xFF, 0xFF, 0xFF);
 	model->Object[0].Group[0].Texture = NULL;
 	model->Object[0].Group[0].MultiTexture = NULL;
+	model->Object[0].Group[0].NormalMap = NULL;
 	model->Object[0].Group[0].Start = 0;
-	model->Object[0].Group[0].mtlname = (char*) calloc (64, sizeof(char));
 
-	//model->Object[i].NFaces = model->Object[i].Group[model->Object[i].NGroups-1].End;
-	model->Object[0].Triangles = memalign (16, model->Object[0].NFaces*3*sizeof(AMG_Vertex_V));	// Sombra para Cel-Shading
 	model->Object[0].Data = NULL;
 	model->Object[0].TriangleSize = sizeof(AMG_Vertex_TCNV)*3;
 	
 	// Crea el buffer temporal de caras
 	model->Object[0].face = NULL;
-	model->Object[0].face = (AMG_FaceOBJ*) calloc (model->Object[0].NFaces, sizeof(AMG_FaceOBJ));
 	
 	nobj = 0;
 	nvtx = 0;
@@ -304,53 +301,56 @@ AMG_Model *AMG_LoadModelPLY(const char *path, float css, u32 psm){
 			if(line[15] == 'b') vertex_rgb = 1;
 		}
 	}
-	
 	if (!vertex_xyz) ;//Error
+	
+	model->Object[0].face = (AMG_FaceOBJ*) calloc (model->Object[0].NFaces, sizeof(AMG_FaceOBJ));
+	
 	if(!vertex_n && !vertex_st && !vertex_rgb){
-		model->Object[0].Data = (AMG_Vertex_V *) malloc (model->Object[0].NFaces*3*sizeof(AMG_Vertex_V));
+		model->Object[0].Data = (AMG_Vertex_V *) calloc (model->Object[0].NFaces*3,sizeof(AMG_Vertex_V));
 		v = (AMG_Vertex_V*)model->Object[0].Data;
 		model->Object[0].Lighting = 0;
 		_mode = 0;
 	} else if (vertex_n && !vertex_st && !vertex_rgb){
-		model->Object[0].Data = (AMG_Vertex_NV *) malloc (model->Object[0].NFaces*3*sizeof(AMG_Vertex_NV));
+		model->Object[0].Data = (AMG_Vertex_NV *) calloc (model->Object[0].NFaces*3,sizeof(AMG_Vertex_NV));
 		nv = (AMG_Vertex_NV*)model->Object[0].Data;
 		model->Object[0].Flags |= GU_NORMAL_8BIT;
 		_mode = 1;
 	} else if (!vertex_n && vertex_st && !vertex_rgb){
-		model->Object[0].Data = (AMG_Vertex_TV *) malloc (model->Object[0].NFaces*3*sizeof(AMG_Vertex_TV));
+		model->Object[0].Data = (AMG_Vertex_TV *) calloc (model->Object[0].NFaces*3,sizeof(AMG_Vertex_TV));
 		tv = (AMG_Vertex_TV*)model->Object[0].Data;
 		model->Object[0].Flags |= GU_TEXTURE_32BITF;
 		model->Object[0].Lighting = 0;
 		_mode = 2;
 	} else if (!vertex_n && !vertex_st && vertex_rgb){
-		model->Object[0].Data = (AMG_Vertex_CV *) malloc (model->Object[0].NFaces*3*sizeof(AMG_Vertex_CV));
+		model->Object[0].Data = (AMG_Vertex_CV *) calloc (model->Object[0].NFaces*3,sizeof(AMG_Vertex_CV));
 		cv = (AMG_Vertex_CV*)model->Object[0].Data;
 		model->Object[0].Flags |= GU_COLOR_8888;
 		model->Object[0].Lighting = 0;
 		_mode = 3;
 	} else if (vertex_n && vertex_st && !vertex_rgb){
-		model->Object[0].Data = (AMG_Vertex_TNV *) malloc (model->Object[0].NFaces*3*sizeof(AMG_Vertex_TNV));
+		model->Object[0].Data = (AMG_Vertex_TNV *) calloc (model->Object[0].NFaces*3,sizeof(AMG_Vertex_TNV));
 		tnv = (AMG_Vertex_TNV*)model->Object[0].Data;
 		model->Object[0].Flags |= GU_NORMAL_8BIT | GU_TEXTURE_32BITF;
 		_mode = 4;
 	} else if (vertex_n && !vertex_st && vertex_rgb){
-		model->Object[0].Data = (AMG_Vertex_CNV *) malloc (model->Object[0].NFaces*3*sizeof(AMG_Vertex_CNV));
+		model->Object[0].Data = (AMG_Vertex_CNV *) calloc (model->Object[0].NFaces*3,sizeof(AMG_Vertex_CNV));
 		cnv = (AMG_Vertex_CNV*)model->Object[0].Data;
 		model->Object[0].Flags |= GU_NORMAL_8BIT | GU_COLOR_8888;
 		_mode = 5;
 	} else if (!vertex_n && vertex_st && vertex_rgb){
-		model->Object[0].Data = (AMG_Vertex_CTV *) malloc (model->Object[0].NFaces*3*sizeof(AMG_Vertex_CTV));
+		model->Object[0].Data = (AMG_Vertex_CTV *) calloc (model->Object[0].NFaces*3,sizeof(AMG_Vertex_CTV));
 		ctv = (AMG_Vertex_CTV*)model->Object[0].Data;
 		model->Object[0].Flags |= GU_TEXTURE_32BITF | GU_COLOR_8888;
 		model->Object[0].Lighting = 0;
 		_mode = 6;
 	} else if (vertex_n && vertex_st && vertex_rgb){
-		model->Object[0].Data = (AMG_Vertex_TCNV *) malloc (model->Object[0].NFaces*3*sizeof(AMG_Vertex_TCNV));
+		model->Object[0].Data = (AMG_Vertex_TCNV *) calloc (model->Object[0].NFaces*3,sizeof(AMG_Vertex_TCNV));
 		model->Object[0].Flags |= (GU_NORMAL_8BIT|GU_TEXTURE_32BITF|GU_COLOR_8888);
 		_mode = 7;
 	}
+	
 	//READ VERTICES HERE                   (*3?)
-	ttcnv = (AMG_Vertex_TCNV *) malloc (nvtx*3*sizeof(AMG_Vertex_TCNV));
+	ttcnv = (AMG_Vertex_TCNV *) calloc (nvtx*3,sizeof(AMG_Vertex_TCNV));
 
 	//LEE VERTICES
 	fseek(f, 0, SEEK_SET);
@@ -421,27 +421,26 @@ AMG_Model *AMG_LoadModelPLY(const char *path, float css, u32 psm){
 	}
 	vtx = 0;
 	rewind(f);
-
+	
 	//INDICES
-	vindex = (u32 *) malloc (model->Object[0].NFaces*3*sizeof(u32));
+	vindex = (u32 *) calloc (model->Object[0].NFaces*3,sizeof(u32));
 	fseek(f, 0, SEEK_SET);
-	while(!feof(f)){
+	while(1){
 		memset(line, 0, 128);
-		fgets(line, 128, f);
+		if (fgets(line, 128, f) == NULL) break;
 		if ((line[0] == '3')&&(line[1] == ' ')){//ascii, equal 3 (avoid 3.00...)
 			sscanf(line,"3 %ld %ld %ld",&vindex[nvindex],&vindex[nvindex+1],&vindex[nvindex+2]);
 			nvindex+=3;
 			vtx++;
 		}
 	}
-	fclose(f);
 	
 	model->Object[0].Mass = vtx;
 	//ARRANGE VERTICES
-	model->Object[0].Triangles = (AMG_Vertex_V *) malloc (model->Object[0].NFaces*3*sizeof(AMG_Vertex_V));
+	model->Object[0].Triangles = (AMG_Vertex_V *) calloc (model->Object[0].NFaces*3,sizeof(AMG_Vertex_V));
 	AMG_Vertex_V *s = (AMG_Vertex_V*) model->Object[0].Triangles;
 	
-	ftcnv =(AMG_Vertex_TCNV *) malloc (model->Object[0].NFaces*3*sizeof(AMG_Vertex_TCNV));
+	ftcnv =(AMG_Vertex_TCNV *) calloc (model->Object[0].NFaces*3,sizeof(AMG_Vertex_TCNV));
 	for (i = 0; i < model->Object[0].NFaces*3;i++){
 		u32 index = vindex[i];
 		ftcnv[i] = ttcnv[index];
@@ -451,7 +450,6 @@ AMG_Model *AMG_LoadModelPLY(const char *path, float css, u32 psm){
 	}
 	
 	//GET SIZE
-	model->Object[0].BBox = (ScePspFVector3*) calloc (2, sizeof(ScePspFVector3));
 	// Calcula la bounding box
 	for(i=0;i<model->Object[0].NFaces*3;i++) {
 		model->Object[0].BBox[0].x = vfpu_fminf((float)model->Object[0].BBox[0].x,(float)ftcnv[i].x); //MIN X
@@ -460,14 +458,6 @@ AMG_Model *AMG_LoadModelPLY(const char *path, float css, u32 psm){
 		model->Object[0].BBox[1].x = vfpu_fmaxf((float)model->Object[0].BBox[1].x,(float)ftcnv[i].x); //MAX X
 		model->Object[0].BBox[1].y = vfpu_fmaxf((float)model->Object[0].BBox[1].y,(float)ftcnv[i].y); //MAX Y
 		model->Object[0].BBox[1].z = vfpu_fmaxf((float)model->Object[0].BBox[1].z,(float)ftcnv[i].z); //MAX Z
-		/*
-		if (model->Object[0].BBox[0].x >= ftcnv[i].x) model->Object[0].BBox[0].x = ftcnv[i].x; //MIN X
-		if (model->Object[0].BBox[0].y >= ftcnv[i].y) model->Object[0].BBox[0].y = ftcnv[i].y; //MIN Y
-		if (model->Object[0].BBox[0].z >= ftcnv[i].z) model->Object[0].BBox[0].z = ftcnv[i].z; //MIN Z
-		if (model->Object[0].BBox[1].x <= ftcnv[i].x) model->Object[0].BBox[1].x = ftcnv[i].x; //MAX X
-		if (model->Object[0].BBox[1].y <= ftcnv[i].y) model->Object[0].BBox[1].y = ftcnv[i].y; //MAX Y
-		if (model->Object[0].BBox[1].z <= ftcnv[i].z) model->Object[0].BBox[1].z = ftcnv[i].z; //MAX Z
-		*/
 	}
 	
 	//COPY TO DATA
@@ -527,7 +517,7 @@ AMG_Model *AMG_LoadModelPLY(const char *path, float css, u32 psm){
 	
 	//outline
 	if (css && css>0){
-		model->Object[0].OutLine = (AMG_Vertex_V*) malloc (model->Object[0].NFaces*3*sizeof(AMG_Vertex_V));
+		model->Object[0].OutLine = (AMG_Vertex_V*) calloc (model->Object[0].NFaces*3,sizeof(AMG_Vertex_V));
 		for (i = 0; i < model->Object[0].NFaces*3;i++){
 			model->Object[0].OutLine[i].x = s[i].x + (((float)ftcnv[i].nx * model->Object[0].CelShadingScale)/127);
 			model->Object[0].OutLine[i].y = s[i].y + (((float)ftcnv[i].ny * model->Object[0].CelShadingScale)/127);
@@ -537,28 +527,25 @@ AMG_Model *AMG_LoadModelPLY(const char *path, float css, u32 psm){
 	
 	//get texture with the same name as the file, if ply has tex coords
 	if(vertex_st){
-		char *texturename = (char*) calloc (128, sizeof(char));
+		char *texturename = model->Object[0].Group[0].mtlname;
 		strncpy(texturename,path,127);
 		texturename[strlen(path)-4] = 0;
 		strcat(texturename,".png");
 		int result = access(texturename, F_OK);
 		if (result == 0) {
-			AMG_Texture *texture = AMG_LoadTexture(texturename,AMG_TEX_RAM,psm);
+			AMG_Texture *texture = AMG_LoadTexture(texturename,M3D_IN_VRAM,psm);
 			model->Object[0].Group[0].Texture = texture;
 		} else model->Object[0].Group[0].Texture = NULL;
 	}
 	nvtx = 0;
 
 	//Free used ram
-	if(line) {free(line); line = NULL;     }
-	if(ttcnv) {free(ttcnv); ttcnv = NULL;  }
-	if(ftcnv) {free(ftcnv); ftcnv = NULL;  }
-	if (outl) {free(outl); outl = NULL;    }
-	i = 0;
+	free(vindex); vindex = NULL;
+	if(ttcnv != NULL) {free(ttcnv); ttcnv = NULL;  }
+	if(ftcnv != NULL) {free(ftcnv); ftcnv = NULL;  }
 	
+	fclose(f);
 	return model;
-}
-	
 }
  
 M3D_Model *M3D_LoadModelPLY(const char *path, float css, u32 psm){
@@ -592,13 +579,12 @@ AMG_Model *AMG_LoadModel(const char *path, float css, u32 psm){
 	float *vtx = NULL, *nrm = NULL, *txc = NULL;
 	u8 noObjects = 0;
 	u32 nobj = 0, nvtx = 0, nnrm = 0, ntxc = 0;
-	char *line = (char*) calloc (128, sizeof(char));
-	char *mtlpath = (char*) calloc (128, sizeof(char));
-	char *straux = (char*) calloc (64, sizeof(char));
+	char line[128] = {0};
+	char mtlpath[128] = {0};
+	char straux[128] = {0};
 	
 	// Crea el modelo 3D
-	AMG_Model *model = NULL;
-	model = (AMG_Model*) calloc (1, sizeof(AMG_Model));
+	AMG_Model *model = (AMG_Model*) calloc (1, sizeof(AMG_Model));
 	// Abre el archivo OBJ
 	FILE *f = fopen(path, "rb");
 	if(f == NULL) AMG_Error((char*)"File not found / Archivo no encontrado",(char*) path);
@@ -612,6 +598,7 @@ AMG_Model *AMG_LoadModel(const char *path, float css, u32 psm){
 		switch(line[0]){
 			case '#': break;
 			case 'm': // mtllib
+				//sscanf(line, "mtllib %s",mtlpath);
 				sscanf(line, "mtllib %s", straux);
 				sprintf(mtlpath, "%s%s", getdir(path), straux);
 				break;
@@ -646,10 +633,6 @@ AMG_Model *AMG_LoadModel(const char *path, float css, u32 psm){
 		model->Object[i].Data = NULL;
 		model->Object[i].Triangles = NULL;
 		model->Object[i].Flags = (GU_VERTEX_32BITF | GU_TRANSFORM_3D);	// Flags por defecto
-		model->Object[i].BBox = NULL;
-		model->Object[i].BBox = (ScePspFVector3*) calloc (2, sizeof(ScePspFVector3));
-		model->Object[i].tBBox = NULL;
-		model->Object[i].tBBox = (ScePspFVector3*) calloc (2, sizeof(ScePspFVector3));
 		model->Object[i].Physics = 0;
 		model->Object[i].collisionreset = 0;
 		if (css)
@@ -685,12 +668,12 @@ AMG_Model *AMG_LoadModel(const char *path, float css, u32 psm){
 		fgets(line, 128, f);
 		switch(line[0]){
 			case '#': break;
-			case 'g':	// Grupos de materiales (ahora soportados :D )
+			case 'g'://Not supported
 				break;
 			case 'o': nobj ++; break;
 			case 'u':	// usemtl
 				model->Object[nobj-1].NGroups ++;
-				break;
+				break;;
 			case 'v':
 				switch(line[1]){
 					case ' ': sscanf(line, "v %f %f %f", &vtx[nvtx*3], &vtx[(nvtx*3)+1], &vtx[(nvtx*3)+2]); nvtx ++; break;
@@ -715,12 +698,12 @@ AMG_Model *AMG_LoadModel(const char *path, float css, u32 psm){
 			model->Object[i].Group[k].Specular = GU_RGBA(0xFF, 0xFF, 0xFF, 0xFF);
 			model->Object[i].Group[k].Texture = NULL;
 			model->Object[i].Group[k].MultiTexture = NULL;
+			model->Object[i].Group[k].NormalMap = NULL;
 			model->Object[i].Group[k].Start = 0;
 			model->Object[i].Group[k].End = 0;
-			model->Object[i].Group[k].mtlname = (char*) calloc (64, sizeof(char));
 		}
 	}
-	
+
 	// Lee el archivo y obtén el número de caras
 	nobj = noObjects;
 	fseek(f, 0, SEEK_SET);
@@ -762,42 +745,41 @@ AMG_Model *AMG_LoadModel(const char *path, float css, u32 psm){
 	// Crea buffers de vertices finales
 	for(i=0;i<model->NObjects;i++){
 		model->Object[i].NFaces = model->Object[i].Group[model->Object[i].NGroups-1].End;
-		model->Object[i].Triangles = memalign (16, model->Object[i].NFaces*3*sizeof(AMG_Vertex_V));	// Sombra para Cel-Shading
+		model->Object[i].Triangles = calloc(model->Object[i].NFaces*3,sizeof(AMG_Vertex_V));	// Sombra para Cel-Shading
 
 		switch(faceformat){
 			case 0:			// vertices y normales
 				model->Object[i].Flags |= GU_NORMAL_8BIT;
-				model->Object[i].Data = (AMG_Vertex_NV*) memalign (16, model->Object[i].NFaces*3*sizeof(AMG_Vertex_NV));
+				model->Object[i].Data = (AMG_Vertex_NV*) calloc (model->Object[i].NFaces*3,sizeof(AMG_Vertex_NV));
 				model->Object[i].TriangleSize = sizeof(AMG_Vertex_NV)*3;
 				break;
 			case 1: case 5: // vertices
-				model->Object[i].Data = (AMG_Vertex_V*) memalign (16, model->Object[i].NFaces*3*sizeof(AMG_Vertex_V));
+				model->Object[i].Data = (AMG_Vertex_V*) calloc (model->Object[i].NFaces*3,sizeof(AMG_Vertex_V));
 				model->Object[i].TriangleSize = sizeof(AMG_Vertex_V)*3;
 				break;
 			case 2: // vertices, texcoords y normales
 				model->Object[i].Flags |= (GU_TEXTURE_32BITF | GU_NORMAL_8BIT);
-				model->Object[i].Data = (AMG_Vertex_TNV*) memalign (16, model->Object[i].NFaces*3*sizeof(AMG_Vertex_TNV));
+				model->Object[i].Data = (AMG_Vertex_TNV*) calloc (model->Object[i].NFaces*3,sizeof(AMG_Vertex_TNV));
 				model->Object[i].TriangleSize = sizeof(AMG_Vertex_TNV)*3;
 				break;
 			case 3: case 4:	// vertices y texcoords
 				model->Object[i].Flags |= GU_TEXTURE_32BITF;
-				model->Object[i].Data = (AMG_Vertex_TV*) memalign (16, model->Object[i].NFaces*3*sizeof(AMG_Vertex_TV));
+				model->Object[i].Data = (AMG_Vertex_TV*) calloc (model->Object[i].NFaces*3,sizeof(AMG_Vertex_TV));
 				model->Object[i].TriangleSize = sizeof(AMG_Vertex_TV)*3;
 				break;
 			default: break;
 		}
 		if (css && css>0)
-			model->Object[i].OutLine = (AMG_Vertex_V*) memalign (16, model->Object[i].NFaces*3*sizeof(AMG_Vertex_V));
+			model->Object[i].OutLine = (AMG_Vertex_V*) calloc (model->Object[i].NFaces*3,sizeof(AMG_Vertex_V));
 		
 		
 		// Crea el buffer temporal de caras
-		model->Object[i].face = NULL;
 		model->Object[i].face = (AMG_FaceOBJ*) calloc (model->Object[i].NFaces, sizeof(AMG_FaceOBJ));
 		if((model->Object[i].Data == NULL) || (model->Object[i].Triangles == NULL) || (model->Object[i].face == NULL)){
 			AMG_Error((char*)"Out of RAM / RAM llena",(char*)path);
 		}
 	}
-	
+
 	// Tercera lectura, leer las caras
 	nobj = noObjects;
 	fseek(f, 0, SEEK_SET);
@@ -837,7 +819,7 @@ AMG_Model *AMG_LoadModel(const char *path, float css, u32 psm){
 			face_idx ++;
 		}
 	}
-
+	
 	// Compila el modelo para AMGLib
 	for(i=0;i<model->NObjects;i++){
 		for(face_idx=0;face_idx<model->Object[i].NFaces;face_idx++){
@@ -894,7 +876,7 @@ AMG_Model *AMG_LoadModel(const char *path, float css, u32 psm){
 			}
 		}
 	}
-	
+
 	// Abre el archivo MTL
 	fclose(f); f = NULL;
 	f = fopen(mtlpath, "rb");
@@ -927,7 +909,7 @@ AMG_Model *AMG_LoadModel(const char *path, float css, u32 psm){
 							if(first){
 								sprintf(model->Object[i].Group[k].mtlname, "%s%s", getdir(path), straux);
 								if(!model->Object[i].Group[k].Texture){
-									model->Object[i].Group[k].Texture = AMG_LoadTexture(model->Object[i].Group[k].mtlname, AMG_TEX_RAM,psm);
+									model->Object[i].Group[k].Texture = AMG_LoadTexture(model->Object[i].Group[k].mtlname, M3D_IN_VRAM,psm);
 								}
 								first = 0;
 							}else{
@@ -985,6 +967,7 @@ AMG_Model *AMG_LoadModel(const char *path, float css, u32 psm){
 	
 	// Cierra el archivo MTL
 	fclose(f); f = NULL;
+	
 	model->FaceFormat = faceformat;
 	
 	// Calcula las bounding boxes
@@ -1010,71 +993,23 @@ AMG_Model *AMG_LoadModel(const char *path, float css, u32 psm){
 		}
 	}
 	
-	//AMG_MessageBox(AMG_MESSAGE_STRING, 0, 0, "Gotcha!");
-	/*f = fopen("log.txt", "wb");
-	fprintf(f, "FaceFormat: %d\n", (int)model->FaceFormat);
-	fprintf(f, "NObjects: %d noObjects: %d\n", (int)model->NObjects, (int)noObjects);
-	fprintf(f, "NV: %d, NT: %d, NN: %d\n", (int)nvtx, (int)ntxc, (int)nnrm);
-	for(u16 i=0;i<model->NObjects;i++){
-		fprintf(f, "\nObject[%d]\n\n", (int)i);
-		fprintf(f, "NFaces: %d\nNGroups: %d\nTriangleSize: %d bytes\n", (int)model->Object[i].NFaces, (int)model->Object[i].NGroups, (int)model->Object[i].TriangleSize);
-		fprintf(f, "Data: %p\n", model->Object[i].Data);
-		for(u8 k=0;k<model->Object[i].NGroups;k++){
-			fprintf(f, "\n\tGroup[%d]\n\n\t", (int)k);
-			fprintf(f, "%d to %d\n", (int)model->Object[i].Group[k].Start, (int)model->Object[i].Group[k].End); 
-		}
-	}
-	fclose(f); f = NULL;*/
-	
 	// Libera TODOS los datos temporales usados
-//##### añade outl
+	
 	tcnv = NULL; tcv = NULL; cv = NULL; cnv =  NULL;
-	free(line); line = NULL; free(mtlpath); mtlpath = NULL; free(straux); straux = NULL;
-	free(vtx); vtx = NULL;
-	if(ntxc) {free(txc); txc = NULL;}
-	if(nnrm) {free(nrm); nrm = NULL;}
-	for(i=0;i<model->NObjects;i++){
-		free(model->Object[i].face); model->Object[i].face = NULL;
-		for(u8 k=0;k<model->Object[i].NGroups;k++){
-			free(model->Object[i].Group[k].mtlname); model->Object[i].Group[k].mtlname = NULL;
+	if(txc) {free(vtx); vtx = NULL;}
+	if(txc) {free(txc); txc = NULL;}
+	if(nrm) {free(nrm); nrm = NULL;}
+	if (model->NObjects){
+		for(i=0;i<model->NObjects;i++){
+			if(model->Object[i].face) {free(model->Object[i].face); model->Object[i].face = NULL;}
 		}
 	}
 	
 	// Devuelve el modelo creado
 	return model;
 //Disabled, if error we already exited the game
-//error:
-	// Libera datos del modelo
-	if(f) fclose(f);
-	if(model){
-		if(model->Object){
-			for(i=0;i<model->NObjects;i++){
-				if(model->Object[i].face) free(model->Object[i].face);
-				if(model->Object[i].Data) free(model->Object[i].Data);
-				if(model->Object[i].Triangles) free(model->Object[i].Triangles);
-//##### borra tambien el outline si hay error (tambien habra que meter esto en la funcion de borrar objeto)
-				if(model->Object[i].OutLine) free(model->Object[i].OutLine);
-				if(model->Object[i].BBox) free(model->Object[i].BBox);
-				if(model->Object[i].tBBox) free(model->Object[i].tBBox);
-				for(u8 k=0;k<model->Object[i].NGroups;k++){
-					if(model->Object[i].Group[k].Texture){
-						AMG_UnloadTexture(model->Object[i].Group[k].Texture);
-						free(model->Object[i].Group[k].Texture);
-					}
-					if(model->Object[i].Group[k].mtlname) free(model->Object[i].Group[k].mtlname);
-				}
-			}
-			free(model->Object);
-		}
-		free(model);
-	}
-	// Libera buffers temporales
-	if(vtx) free(vtx);
-	if(txc) free(txc);
-	if(nrm) free(nrm);
-	if(straux) free(straux);
-	if(line) free(line);
-	if(mtlpath) free(mtlpath);
+error:
+	//AMG_Error()
 	// Devuelve NULL
 	return NULL;
 }
@@ -1450,6 +1385,7 @@ void M3D_ModelBINScrollTexture(M3D_ModelBIN* m,float du, float dv){
 }
 
 
+
 //
 void AMG_TransferObjectVram(AMG_Object *model){
 	u16 nfaces = (model->Group[0].End - model->Group[0].Start);
@@ -1463,42 +1399,51 @@ void AMG_TransferObjectVram(AMG_Object *model){
 
 // Elimina un objeto 3D
 void AMG_UnloadObject(AMG_Object *model){
-	// Libera el objeto
 	if(model == NULL) return;
 	if(model->Data != NULL)  {free(model->Data); model->Data = NULL;  }
-	if(model->BBox != NULL)  {free(model->BBox); model->BBox = NULL;  }
-	if(model->tBBox != NULL) {free(model->tBBox); model->tBBox = NULL;}
-	if(model->Triangles) {free(model->Triangles); model->Triangles = NULL;}
-	if(model->OutLine) {free(model->OutLine); model->OutLine = NULL;}
+	if(model->Triangles != NULL) {free(model->Triangles); model->Triangles = NULL;}
+	if(model->OutLine != NULL) {free(model->OutLine); model->OutLine = NULL;}
+	if(model->face != NULL){free(model->face); model->face = NULL;}
 	// Libera los grupos de materiales
-	for(u8 i=0;i<model->NGroups;i++){
-		if(model->Group[i].Texture != NULL){
-			AMG_UnloadTexture(model->Group[i].Texture);
-			free(model->Group[i].Texture); model->Group[i].Texture = NULL;
-		}
-		if(model->Group[i].MultiTexture != NULL){
-			AMG_UnloadTexture(model->Group[i].MultiTexture);
-			free(model->Group[i].MultiTexture); model->Group[i].MultiTexture = NULL;
-		}
-		if(model->Group[i].NormalMap != NULL){
-			free(model->Group[i].NormalMap); model->Group[i].NormalMap = NULL;
+	if (model->NGroups){
+		for(u8 i=0;i<model->NGroups;i++){
+			if(model->Group[i].Texture != NULL){
+				AMG_UnloadTexture(model->Group[i].Texture);
+			}
+			if(model->Group[i].MultiTexture != NULL){
+				AMG_UnloadTexture(model->Group[i].MultiTexture);
+			}
+			if(model->Group[i].NormalMap != NULL){
+				free(model->Group[i].NormalMap); model->Group[i].NormalMap = NULL;
+			}
 		}
 	}
-	free(model->Group); model->Group = NULL;
+	if (model->Group != NULL) {free(model->Group); model->Group = NULL;}
 }
 
 // Elimina un modelo 3D
 void AMG_UnloadModel(AMG_Model *model){
 	if(model == NULL) return;
 	u16 i;
+	if (model->NObjects){
+		for(i=0;i<model->NObjects;i++){
+			AMG_UnloadObject(&model->Object[i]);
+		}
+	}
+	if(model->Object != NULL) {free(model->Object); model->Object = NULL;}
+	if(model != NULL) {free(model); model = NULL;}
+} 
+
+void M3D_ModelUnload(M3D_Model *m){
+	AMG_Model *model = (AMG_Model*)m;
+	if(model == NULL) return;
+	u16 i;
 	for(i=0;i<model->NObjects;i++){
 		AMG_UnloadObject(&model->Object[i]);
 	}
-	model->FaceFormat = 0; model->NObjects = 0; model->CelShading = 0;
-	free(model->Object); model->Object = NULL;
+	if(model->Object != NULL) {free(model->Object); model->Object = NULL;}
+	if(model != NULL) {free(model); model = NULL;}
 } 
-
-
 
 
 
@@ -2021,9 +1966,10 @@ void AMG_Set_Shadowprojection(int psize,float size){
 	gumLoadIdentity(&AMG_ShadowlightProjection);
 	gumPerspective(&AMG_ShadowlightProjection,1.0f,1,0.5f,2048.0f);
 	if (psize > 256) AMG_Error((char*)"Shadowprojection > 256",(char*)"AMG_Set_Shadowprojection");
-	AMG_ShadowMap = AMG_CreateTexture(psize,psize,GU_PSM_4444,AMG_TEX_VRAM);
+	if (AMG_ShadowMap) AMG_UnloadTexture(AMG_ShadowMap);
+	AMG_ShadowMap = AMG_CreateTexture(psize,psize,GU_PSM_4444,M3D_IN_VRAM);
 	oslVramMgrAllocBlock(psize*(272-psize));
-	if(AMG_ShadowMap->Load != AMG_TEX_VRAM) AMG_Error((char*)"NO VRAM",(char*)"AMG_ShadowMap");
+	if(AMG_ShadowMap->Load != M3D_IN_VRAM) AMG_Error((char*)"NO VRAM",(char*)"AMG_ShadowMap");
 	//Scale the shadow border according to shadow size
 	int i;
 	for (i = 0; i<30;i++) AMG_Shadow_Fix[i]/=(256/psize);
@@ -2268,7 +2214,7 @@ void M3D_ModelLoadNormalTexture(M3D_Model *m,int obj_number, int group,const cha
 	if (psm == GU_PSM_T4) ncolors = 16;
 	else if (psm == GU_PSM_T8) ncolors = 256;
 	else return;
-	model->Object[obj_number].Group[group].MultiTexture = AMG_LoadTexture(path,AMG_TEX_RAM,psm);
+	model->Object[obj_number].Group[group].MultiTexture = AMG_LoadTexture(path,M3D_IN_VRAM,psm);
 	if(model->Object[obj_number].Group[group].MultiTexture == NULL) return;
 
 	//store normalized normals here

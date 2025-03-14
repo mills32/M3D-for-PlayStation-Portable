@@ -21,7 +21,6 @@ ScePspFVector3 s1;		// Lo siento, no me gustan las variables locales :P
 extern AMG_Object *amg_curfloor;	// El suelo actual (para reflejos y sombras)
 
 extern u32 l;
-
 //////////////////////
 
 extern u8 Render_Style;//Mills 04/08/15
@@ -248,13 +247,12 @@ AMG_Skinned_Actor *AMG_LoadSkinnedActor(const char *path, float outline, u32 psm
 	sceKernelDcacheWritebackInvalidateRange(actor->Object[0].Data,sizeof(AMG_Vertex_W2V  )*3*actor->Object->polyCount);
 	
 	//get texture with the same name as the file
-	char *texturename = (char*) calloc (128, sizeof(char));
+	char texturename[128] = {0};
 	strncpy(texturename,path,127);
 	texturename[strlen(path)-4] = 0;
 	strcat(texturename,".png");
-	AMG_Texture *texture = AMG_LoadTexture(texturename,AMG_TEX_RAM,psm);
+	AMG_Texture *texture = AMG_LoadTexture(texturename,M3D_IN_VRAM,psm);
 	if (texture != NULL) actor->Object[0].texture = texture;
-
 	
 	actor->Pos = actor->Rot = (ScePspFVector3) {0,0,0};
 	/////////////////////////
@@ -270,6 +268,12 @@ AMG_Skinned_Actor *AMG_LoadSkinnedActor(const char *path, float outline, u32 psm
 	actor->Object[0].interpolation = 0;
 	actor->Object[0].frame = 0;
 	actor->smooth = 1;
+	
+	for (i = 0; i < 32; i++){
+		for (j = 0; j < 32; j++){
+			if(ngroups[i][j]) {free(ngroups[i][j]); ngroups[i][j] = NULL;}
+		}
+	}
 	
 	return actor;
 }
@@ -402,11 +406,12 @@ if (!skip){
 		//Draw outline group if any
 		if (actor->Outline == 1){
 			sceGuDisable(GU_TEXTURE_2D);
+			if(actor->Object[0].Lighting) sceGuDisable(GU_LIGHTING);
 			sceGuDisable(GU_LIGHTING);
 			sceGuFrontFace(GU_CW);
 			sceGuColor(0xff000000); 
 			sceGuDrawArray(GU_TRIANGLES,GU_WEIGHTS(2)|GU_WEIGHT_8BIT|GU_VERTEX_32BITF|GU_TRANSFORM_3D,number,0,actor->Object[0].Border+offset);
-			sceGuEnable(GU_LIGHTING);
+			if(actor->Object[0].Lighting) sceGuEnable(GU_LIGHTING);
 		}
 	}
 	
@@ -512,7 +517,7 @@ AMG_Morphing_Actor *AMG_LoadMorphingActor(char *path, float outline, u32 psm){
 	fread (&header,1,4,f);
 	//M3MP
 	if(header != 0x504D334D) {AMG_Error((char*)"MorphingActor wrong format / Formato MorphingActor incorrecto", path); }
-{
+
 	fseek(f, 0x18, SEEK_SET);
 	fread(&actor->Object[0].polyCount,1,4,f);
 	fseek(f, 0x2A, SEEK_SET);
@@ -525,6 +530,7 @@ AMG_Morphing_Actor *AMG_LoadMorphingActor(char *path, float outline, u32 psm){
 	//READ
 	fseek(f, 0x40, SEEK_SET);
 	fread(&actor->Object[0].Data[0],data_size,1,f);
+	fclose(f);
 	
 	//OUTLINE
 	if (outline != 0){
@@ -537,8 +543,6 @@ AMG_Morphing_Actor *AMG_LoadMorphingActor(char *path, float outline, u32 psm){
 			actor->Object[0].Border[i].z = actor->Object[0].Data[i].z + (((float)actor->Object[0].Data[i].nz * actor->Object[0].CelShadingScale)/127);
 		}
 	}
-	
-	actor->Object[0].BBox = (ScePspFVector3*) calloc (2, sizeof(ScePspFVector3));
 
 	// Calcula la bounding box
 	for(i=0;i<actor->Object[0].polyCount*3;i++){
@@ -554,11 +558,11 @@ AMG_Morphing_Actor *AMG_LoadMorphingActor(char *path, float outline, u32 psm){
 	
 	
 	//get texture with the same name as the file
-	char *texturename = (char*) calloc (128, sizeof(char));
+	char texturename[128] = {0};
 	strncpy(texturename,path,127);
 	texturename[strlen(path)-4] = 0;
 	strcat(texturename,".png");
-	AMG_Texture *texture = AMG_LoadTexture(texturename,AMG_TEX_RAM,psm);
+	AMG_Texture *texture = AMG_LoadTexture(texturename,M3D_IN_VRAM,psm);
 	if (texture != NULL) actor->Object[0].texture = texture;
 	
 	actor->Pos = actor->Rot = (ScePspFVector3) {0,0,0};
@@ -573,7 +577,6 @@ AMG_Morphing_Actor *AMG_LoadMorphingActor(char *path, float outline, u32 psm){
 	actor->smooth = 1;
 	actor->Object[0].collisionreset = 0;
 	return actor;
-}
 
 }
 
@@ -638,6 +641,14 @@ void AMG_RenderMorphingActor(AMG_Morphing_Actor *actor){
 
 	sceGuDrawArray(GU_TRIANGLES,GU_TEXTURE_32BITF|GU_COLOR_8888|GU_NORMAL_8BIT|GU_VERTEX_32BITF|GU_VERTICES(actor->Object[0].frameCount)|GU_TRANSFORM_3D,actor->Object[0].polyCount*3,0,actor->Object[0].Data);
 
+	if (actor->Outline){
+		if(l == GU_TRUE) sceGuDisable(GU_LIGHTING);
+		sceGuDisable(GU_TEXTURE_2D);
+		sceGuEnable(GU_CULL_FACE);
+		sceGuFrontFace(GU_CW);
+		sceGuColor(0xff000000);
+		sceGuDrawArray(GU_TRIANGLES,GU_VERTEX_32BITF|GU_VERTICES(actor->Object[0].frameCount)|GU_TRANSFORM_3D,actor->Object[0].polyCount*3,0,actor->Object[0].Border);
+	}
 	u8 l = sceGuGetStatus(GU_LIGHTING);
 	
 	sceGuDisable(GU_CULL_FACE);
@@ -715,7 +726,44 @@ ScePspFVector3 M3D_MorphingActorGetPosition(M3D_MorphingActor *act){
 	return actor->Pos;
 }
 
-// Clona un actor
+void M3D_MorphingActorUnload(M3D_MorphingActor *a){
+	AMG_Morphing_Actor *actor = (AMG_Morphing_Actor *)a;
+	if(actor == NULL) return;
+	MorphModel *Object = &actor->Object[0];
+	if(Object->texture) AMG_UnloadTexture(Object->texture);
+	if(Object->MultiTexture) AMG_UnloadTexture(Object->MultiTexture);
+	if(Object->Data)  {free(Object->Data);Object->Data = NULL;}
+	if(Object->Border){free(Object->Border);Object->Border = NULL;}
+	if(actor->Object) {free(actor->Object);actor->Object = NULL;}
+	free(actor); actor = NULL;
+}
+
+void M3D_SkinnedActorUnload(M3D_SkinnedActor *a){
+	AMG_Skinned_Actor *actor = (AMG_Skinned_Actor *)a;
+	if(actor == NULL)return;
+	SkinnedModel *Object = &actor->Object[0];
+	if(Object->texture) AMG_UnloadTexture(Object->texture);
+	if(Object->MultiTexture) AMG_UnloadTexture(Object->MultiTexture);
+	if(Object->Data)  {free(Object->Data);Object->Data = NULL;}
+	if(Object->Border){free(Object->Border);Object->Border = NULL;}
+	if(Object->Group) {free(Object->Group);Object->Group = NULL;}
+	if(actor->Object) {free(actor->Object);actor->Object = NULL;}
+	if(actor) {free(actor);actor = NULL;}
+}
+
+
+void M3D_SkinnedActorSetLighting(M3D_SkinnedActor *a, int light){
+	AMG_Skinned_Actor *actor = (AMG_Skinned_Actor *)a;
+	actor->Object[0].Lighting = light;
+}
+
+void M3D_MorphingActorSetLighting(M3D_MorphingActor *a, int light){
+	AMG_Morphing_Actor *actor = (AMG_Morphing_Actor *)a;
+	actor->Object[0].Lighting = light;
+}
+
+
+// Clone an actor
 AMG_Skinned_Actor *AMG_CloneSkinnedActor(AMG_Skinned_Actor *actorc){
 	if(!actorc) return 0;
 	//Create another actor struct
@@ -982,47 +1030,6 @@ void Track3DObj(AMG_Actor *actor, AMG_Actor *actor1, float speed, ScePspFVector3
 	}
 }*/
 
-// Renderiza un actor (mirror)
-/*void AMG_RenderMirrorActor(AMG_Actor *obj, u8 axis){
-    // Cuidado con la iluminacion
-	if(obj == NULL) return;
-	u8 l = sceGuGetStatus(GU_LIGHTING);
-	sceGuDisable(GU_LIGHTING);
-	sceGuStencilFunc(GU_EQUAL, 1, 1);
-	sceGuStencilOp(GU_KEEP, GU_KEEP, GU_KEEP);
-	// Guarda valores temporales
-	ScePspFVector3 tmp_pos, tmp_scl;
-	tmp_pos.x = obj->Pos.x; tmp_pos.y = obj->Pos.y; tmp_pos.z= obj->Pos.z;
-	tmp_scl.x = obj->Scale.x; tmp_scl.y = obj->Scale.y; tmp_scl.z= obj->Scale.z;
-
-	// Cambia la posición
-	float d = 0.0f;		// Distancia del objeto al suelo
-	switch(axis){
-		case 0:			// Eje X
-			d = ((obj->Origin.x + obj->Pos.x) - (amg_curfloor->Origin.x + amg_curfloor->Pos.x));
-			obj->Pos.x -= (d * 2.0f);
-			obj->Scale.x = -obj->Scale.x;
-			break;
-		case 1:			// Eje Y
-			d = ((obj->Origin.y + obj->Pos.y) - (amg_curfloor->Origin.y + amg_curfloor->Pos.y));
-			obj->Pos.y -= (d * 2.0f);
-			obj->Scale.y = -obj->Scale.y;
-			break;
-		case 2:			// Eje Z
-			d = ((obj->Origin.z + obj->Pos.z) - (amg_curfloor->Origin.z + amg_curfloor->Pos.z));
-			obj->Pos.z -= (d * 2.0f);
-			obj->Scale.z = -obj->Scale.z;
-			break;
-		default: return;
-	}
-	// Renderiza el objeto
-	obj->Mirror = 1;
-	AMG_RenderActor(obj, 0);
-	obj->Mirror = 0;
-	obj->Pos.x = tmp_pos.x; obj->Pos.y = tmp_pos.y; obj->Pos.z = tmp_pos.z;
-	obj->Scale.x = tmp_scl.x; obj->Scale.y = tmp_scl.y; obj->Scale.z = tmp_scl.z;
-	if(l) sceGuEnable(GU_LIGHTING);
-}*/
 
 //***************
 //3D object (cylinder) for STENCIL Shadow
@@ -1213,7 +1220,7 @@ void M3D_SkinnedActorRenderShadow(M3D_SkinnedActor *actor){
 //NURBS SURFACES
 
 
-M3D_NurbsSurface *M3D_CreateNurbsSurface(const char *texpath,float size,int steps){
+M3D_NurbsSurface *M3D_CreateNurbsSurface(const char *texpath, u32 psm, float size,int steps){
 	AMG_NurbsSurface *s = NULL;
 	s = (AMG_NurbsSurface*) calloc (1, sizeof(AMG_NurbsSurface));
 	if (!s) return 0;
@@ -1225,7 +1232,7 @@ M3D_NurbsSurface *M3D_CreateNurbsSurface(const char *texpath,float size,int step
 	s->vertices = (AMG_Vertex_TNV*) calloc(steps*steps,sizeof(AMG_Vertex_TNV));
 	s->points = (float*) calloc(steps*steps,4*6);
 	
-	int i,j;
+	u32 i,j;
 	for (i = 0; i < s->resolution; i++){
 		u = 0;x = size/2;
 		for (j = 0; j < s->resolution; j++){
@@ -1244,14 +1251,14 @@ M3D_NurbsSurface *M3D_CreateNurbsSurface(const char *texpath,float size,int step
 		v+= (float)1/(steps-1);
 		y+= (float)size/(steps-1);
 	}
-
+	//sceKernelDcacheWritebackInvalidateRange(s->vertices,s->resolution*s->resolution*sizeof(AMG_Vertex_TNV));
 	s->Pos = (ScePspFVector3) {0,0,0};
 	s->Rot = (ScePspFVector3) {0,0,0};
 	s->Scale = (ScePspFVector3) {1,1,1};
 	
 	s->Texture = NULL;
 
-	if (texpath) s->Texture = AMG_LoadTexture(texpath,0,GU_PSM_4444);
+	if (texpath) s->Texture = AMG_LoadTexture(texpath,M3D_IN_VRAM,psm);
 
 	s->mode = 0;
 	s->px0 = 0;
@@ -1265,8 +1272,7 @@ M3D_NurbsSurface *M3D_CreateNurbsSurface(const char *texpath,float size,int step
 	return Surface;
 }
 
-
-void M3D_NurbsSurfaceSet(M3D_NurbsSurface *surface, int mode, float px0, float py0, float px1, float py1, float strength, float angle){
+void M3D_NurbsSurfaceSet(M3D_NurbsSurface *surface, u32 mode, float px0, float py0, float px1, float py1, float strength, float angle){
 	AMG_NurbsSurface *s = (AMG_NurbsSurface *) surface->NurbsSurface;
 	s->mode = mode;
 	s->px0 = px0;
