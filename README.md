@@ -44,6 +44,7 @@ So this is a brief description of everything M3D does. For more details, **read 
 **<ins>3D NURBS:</ins>** PSP can generate a surface from several points you can animate, I added this because I think it looks ok for simple water simulations.   
 **<ins>TV OUT:</ins>** You can enable TV OUT mode (on PSP 2000+), it will output a 720x480 image. This will be slow unless you use 4444, 5551 or 5650 modes.
 You need the file "dvemgr.prx" in the same folder as the EBOOT.PBP to enable TV-OUT. I could recompile dvemgr.prx from the source (in M3D_LIBS) But it does not wrok well, so use the one found inside many samples (there is also a copy in M3D_LIBS called "dvemgr_WORKS.prx").  
+**<ins>UNLOAD FUNCTIONS:</ins>** All files / structures have now unload functions with no memory leaks.
 
 ## SOME TESTS
   
@@ -141,10 +142,10 @@ You don't really need Blender to create the models, any program that generates m
 ## BUGS
   - Sometimes you can load images with the wrong format and it will crash the image loader (OSLIB)
   - Be sure there are no custom mipmap images (image_mip1 or image_mip2) if you are not going to use them, again the texture loader can automatically load them with the wrong format, and crash the system.
-  - Doing things like "M3D_Model *Models[32];" can cause memory leaks if the array is too big.
+  - [SOLVED]: Doing things like "M3D_Model *Models[32];" used to cause memory leaks if the array was too big.
   - in "16_Demo" sample, if the enemies fall from the ground, PSP will crash (M3D_EnemyMove will crash). This function was made just as a sample, it needs some more checks, and also needs platform detection or something like that.
   - Unload functions are being added, (not added but already fixed: textures, maps, models obj, models ply).
-  - 2D MAPS are really buggy, because they need separate OSL_IMAGE* structures, I'm also trying to fix it.
+  - [SOLVED]: 2D MAPS were really buggy, because they needed separate OSL_IMAGE* structures.
   
   
    
