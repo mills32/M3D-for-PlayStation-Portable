@@ -44,8 +44,10 @@ So this is a brief description of everything M3D does. For more details, **read 
 **<ins>3D NURBS:</ins>** PSP can generate a surface from several points you can animate, I added this because I think it looks ok for simple water simulations.   
 **<ins>TV OUT:</ins>** You can enable TV OUT mode (on PSP 2000+), it will output a 720x480 image. This will be slow unless you use 4444, 5551 or 5650 modes.
 You need the file "dvemgr.prx" in the same folder as the EBOOT.PBP to enable TV-OUT. I could recompile dvemgr.prx from the source (in M3D_LIBS) But it does not wrok well, so use the one found inside many samples (there is also a copy in M3D_LIBS called "dvemgr_WORKS.prx").  
-**<ins>UNLOAD FUNCTIONS:</ins>** All files / structures have now unload functions with no memory leaks.
-
+**<ins>UNLOAD FUNCTIONS:</ins>** All files / structures have now unload functions with no memory leaks.  
+**<ins>LOADING SCREE:</ins>** I created a simple loading screen function (M3D_Loading_Start(); M3D_Loading_Stop();) which uses an animated sprite rendered in a separate thread.    
+    
+  
 ## SOME TESTS
   
 MULTITEXTURE SAMPLE:  
