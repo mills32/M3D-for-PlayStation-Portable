@@ -2230,6 +2230,7 @@ void M3D_ModelLoadNormalTexture(M3D_Model *m,int obj_number, int group,const cha
 void M3D_ModelSetNormalTexture(M3D_Model *mod,int obj_number, int group, M3D_Camera *cam,int l){
 	AMG_Model *model = (AMG_Model*)mod;
 	AMG_Camera *camera = (AMG_Camera*)cam;
+	if(!model->Object[obj_number].Group[group].NormalMap) return;
 	int i;
 	int ncolors = 0;
 	ScePspFMatrix4 __attribute__((aligned(16))) m;
