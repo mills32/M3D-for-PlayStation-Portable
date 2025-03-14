@@ -24,7 +24,9 @@ int main(){
 	USED_VRAM0 = USED_VRAM;
 	for(int i = 0;i<n;i++){
 		M3D_Texture *R =  M3D_LoadTexture("Files/test.png",0,COLOR_8888);
+		M3D_Texture *I =  M3D_LoadHugeImage("Files/hugeimage.png");
 		M3D_TextureUnload(R);
+		M3D_TextureUnload(I);
 		M3D_Printf(Font1,0,0,0xffff00ff,0,0,0,"LOAD/UNLOAD TEXTURE\n\n\nFREE RAM=%i KB\nUSED VRAM=%i KB\nTEST=%i",M3D_GetFreeRAM(),M3D_GetUsedVRAM(),i);
 		if (i == n-1) M3D_Printf(Font1,0,120,0xffecff00,0,0,0,"WASTED RAM=%i KB (SHOULD BE 0)\nWASTED VRAM=%i KB (SHOULD BE 0)\n\nWAIT 6 SECONDS FOR NEXT TEST",M3D_GetFreeRAM()-FREE_RAM,M3D_GetUsedVRAM()-USED_VRAM);
 		M3D_updateScreen(0x00000000);
