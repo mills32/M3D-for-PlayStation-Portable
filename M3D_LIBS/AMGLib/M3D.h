@@ -426,10 +426,10 @@ void M3D_SkinnedActorRotate(M3D_SkinnedActor *act, float rdx, float rdy, float r
 M3D_SkinnedActor *M3D_SkinnedActorClone(M3D_SkinnedActor *actorc);
 void M3D_CameraFollowSkinnedActor(M3D_Camera *cam, M3D_SkinnedActor *act, float height_y, float max_distance);
 ScePspFVector3 M3D_SkinnedActorGetPos(M3D_SkinnedActor *actor);
-//void M3D_SkinnedActorSetOcclusion(M3D_SkinnedActor *act,int value);
 void M3D_SkinnedActorRenderMirror(M3D_SkinnedActor* act, u8 axis);
+void M3D_SkinnedActorScrollTexture(M3D_SkinnedActor* act,float u, float v);
 void M3D_SkinnedActorUnload(M3D_SkinnedActor *a);
-
+//void M3D_SkinnedActorSetOcclusion(M3D_SkinnedActor *act,int value);
 
 /*MORPHING MODELS
 	3D models using several shapes for animation
@@ -445,6 +445,7 @@ void M3D_MorphingActorSetRotation(M3D_MorphingActor *act, float rx, float ry, fl
 void M3D_MorphingActorSetScale(M3D_MorphingActor *act, float sx, float sy, float sz);
 void M3D_MorphingActorTranslate(M3D_MorphingActor *act, float dx, float dy, float dz);
 void M3D_MorphingActorRotate(M3D_MorphingActor *act, float rdx, float rdy, float rdz);
+void M3D_MorphingActorScrollTexture(M3D_MorphingActor* act,float u, float v);
 ScePspFVector3 M3D_MorphingActorGetPosition(M3D_MorphingActor *act);
 void M3D_MorphingActorUnload(M3D_MorphingActor *a);
 //void M3D_MorphingActorSetOcclusion(M3D_MorphingActor *act,int value);

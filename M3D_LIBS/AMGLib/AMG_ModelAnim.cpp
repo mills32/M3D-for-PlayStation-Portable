@@ -494,6 +494,12 @@ void M3D_SkinnedActorRotate(M3D_SkinnedActor *act, float rdx, float rdy, float r
 	actor->Rot.z += M3D_Deg2Rad(rdz);
 }
 
+void M3D_SkinnedActorScrollTexture(M3D_SkinnedActor* act,float u, float v){
+	AMG_Skinned_Actor *actor = (AMG_Skinned_Actor*)act;
+	actor->Object[0].texture->U += u;
+	actor->Object[0].texture->V += v;
+}
+
 ScePspFVector3 M3D_SkinnedActorGetPos(M3D_SkinnedActor *act){
 	AMG_Skinned_Actor *actor = (AMG_Skinned_Actor*)act;
 	return actor->Pos;
@@ -762,6 +768,11 @@ void M3D_MorphingActorSetLighting(M3D_MorphingActor *a, int light){
 	actor->Object[0].Lighting = light;
 }
 
+void M3D_MorphingActorScrollTexture(M3D_MorphingActor* act,float u, float v){
+	AMG_Morphing_Actor *actor = (AMG_Morphing_Actor *)act;
+	actor->Object[0].texture->U += u;
+	actor->Object[0].texture->V += v;
+}
 
 // Clone an actor
 AMG_Skinned_Actor *AMG_CloneSkinnedActor(AMG_Skinned_Actor *actorc){
