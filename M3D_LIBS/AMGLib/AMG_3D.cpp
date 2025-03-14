@@ -89,7 +89,10 @@ OSL_IMAGE *AMG_Error_img;
 OSL_IMAGE *AMG_Error_img_B;
 OSL_SOUND *AMG_Error_mus;
 
+extern int AMG_LOADING;
+void M3D_Loading_Stop();
 void AMG_Error(const char *type,const char *info){
+	if (AMG_LOADING) M3D_Loading_Stop();
 	M3D_Texture *Font = (M3D_Texture*)M3D_GetFont(0);
 	int x = 64;
 	int y = 88;
