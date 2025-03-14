@@ -704,7 +704,7 @@ void AMG_UnloadTexture(AMG_Texture *tex){
 	u32 size01 = 0;
 	u32 size1 = AMG_GetVramSize(tex->M1_Width,tex->M1_Height, tex->TexFormat);
 	u32 size2 = AMG_GetVramSize(tex->M2_Width,tex->M2_Height, tex->TexFormat);
-	if(tex->Load == AMG_TEX_RAM){
+	if(tex->Load == M3D_IN_RAM){
 		free(tex->Data);
 		if (tex->Data1 != NULL) free(tex->Data1); 
 		if (tex->NMipmaps){free(tex->MipData);free(tex->MipData1);}
@@ -805,7 +805,7 @@ M3D_Texture *M3D_LoadHugeImage(const char *filename) {
 	u32 v = Image->RWidth;
 	v-=1; v|=(v>>1); v|=(v>>2); v|=(v>>4); v|=(v>>8); v|=(v>>16);
 	Image->Next_pow2 = v+1;
-	
+
 	if(Image->TexFormat == GU_PSM_8888){
 		Image->Data = (u32*) calloc((512*512),4);
 		Image->Data1 = (u32*) calloc(Image->Next_pow2*height,4);
@@ -886,7 +886,7 @@ M3D_Texture *M3D_LoadHugeImage(const char *filename) {
 
 	Image->Load = AMG_TEX_RAM;
 	Image->Swizzle = 1;
-
+	
 	//Free ram
 	for(int y = 0; y < height; y++) free(row_pointers[y]);
 	free(row_pointers);
@@ -900,6 +900,7 @@ M3D_Texture *M3D_LoadHugeImage(const char *filename) {
 	//Avoids garbage pixels on textures
 	sceKernelDcacheWritebackInvalidateRange(Image->Data,AMG_GetVramSize(Image->Width,Image->Height,Image->TexFormat));
 	sceKernelDcacheWritebackInvalidateRange(Image->Data1,AMG_GetVramSize(Image->Width,Image->Height,Image->TexFormat));
+	
 	
 	return (M3D_Texture*)Image;
 }
