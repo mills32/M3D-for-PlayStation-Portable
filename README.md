@@ -146,7 +146,6 @@ You don't really need Blender to create the models, any program that generates m
   - Sometimes you can load images with the wrong format and it will crash the image loader (OSLIB)
   - Be sure there are no custom mipmap images (image_mip1 or image_mip2) if you are not going to use them, again the texture loader can automatically load them with the wrong format, and crash the system.  
   - in "16_Demo" sample, if the enemies fall from the ground, PSP will crash (M3D_EnemyMove will crash). This function was made just as a sample, it needs some more checks, and also needs platform detection or something like that.
-  - If images don't fit in VRAM the unload function fails to free RAM data.  
   - **<ins>[SOLVED]</ins>**: Doing things like "M3D_Model *Models[32];" used to cause memory leaks if the array was too big.  
   - **<ins>[SOLVED]</ins>**: 2D MAPS were really buggy, because they needed separate OSL_IMAGE* structures.  
   
