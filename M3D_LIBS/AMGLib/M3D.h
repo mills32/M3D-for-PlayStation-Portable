@@ -340,10 +340,8 @@ void M3D_LightDisable(u8 n);
 */
 M3D_Model *M3D_LoadModel(const char *path, float css, u32 psm);
 M3D_Model *M3D_LoadModelPLY(const char *path, float css, u32 psm);
-//M3D_Model *M3D_ModelArray(int number);
-M3D_ModelBIN *M3D_LoadModelBIN(const char *path, u32 psm);
+
 void M3D_ModelRender(M3D_Model *model, int transparent);
-void M3D_ModelBINRender(M3D_ModelBIN *mesh, u32 offset);
 void M3D_ModelSetTexture(M3D_Model *m, int obj_number, int group_number, M3D_Texture *t);
 void M3D_ModelSetPosition(M3D_Model* m,int obj_number,float x, float y, float z);
 ScePspFVector3 M3D_ModelGetPosition(M3D_Model* m,int obj_number);
@@ -365,26 +363,35 @@ void M3D_ModelTexture3D_Animate(M3D_Model *model, int obj_number, int group_numb
 void M3D_ModelSetLighting(M3D_Model* m,int obj_number, u8 lighting);
 void M3D_ModelSetOcclusion(M3D_Model* m,int obj_number,int occlusion);
 
-void M3D_DrawSkyBox(M3D_Model *model,float fov);
-void M3D_ModelUnload(M3D_Model *model);
+void M3D_DrawSkyBox(M3D_Model *model,float fov);//Draws a skibox model on the background. fov = perspective
+void M3D_ModelUnload(M3D_Model *model);//Now working well!!
+
 
 /*REFLECTIONS
 -------------
+	Use a plane to create a simple mirror/reflective surface.
+	Only for M3D_Model structure.
+	mirror_model = model to use as mirror.
+	reflected_model = model to be reflected on mirror.
+	light_number: light to reflect.
+	axis: reflection axis (x=0; y=1; z=2;)
 
 */
-void M3D_StartReflection(M3D_Model *model, u8 number);
-void M3D_ModelRenderMirror(M3D_Model *model, u8 number, u8 light_number, u8 axis);
+void M3D_StartReflection(M3D_Model *mirror_model, u8 obj_number);
+void M3D_ModelRenderMirror(M3D_Model *reflected_model, u8 obj_number, u8 light_number, u8 axis);
 void M3D_FinishReflection();
 
 
 /*PSP BINARY MODELS
 -------------------
-void M3D_ModelUnload(M3D_Model *model);
-void M3D_ModelBINUnload(M3D_ModelBIN *model);
-void M3D_SkinnedActorUnload(M3D_SkinnedActor *a);
-void M3D_MorphingActorUnload(M3D_MorphingActor *a);
-void M3D_NurbsDelete(M3D_NurbsSurface *surface);
+	3D models in the internal PSP format. 
+	They contain vertices + vertex colors + texture. 
+	No lighting.
+	Use for static scenary / level.
+
 */
+M3D_ModelBIN *M3D_LoadModelBIN(const char *path, u32 psm);
+void M3D_ModelBINRender(M3D_ModelBIN *mesh, u32 offset);
 void M3D_ModelBINSetPosition(M3D_ModelBIN* m,float x, float y, float z);
 void M3D_ModelBINSetRotation(M3D_ModelBIN* m,float rx, float ry, float rz);
 void M3D_ModelBINTranslate(M3D_ModelBIN* m,float dx, float dy, float dz);
@@ -393,9 +400,22 @@ void M3D_ModelBINSetOrigin(M3D_ModelBIN* m,float ox, float oy, float oz);
 void M3D_ModelBINScrollTexture(M3D_ModelBIN* m,float du, float dv);
 void M3D_ModelBINUnload(M3D_ModelBIN *model);
 
-//SKINNED MODELS
+
+/*SKINNED MODELS
+	3D models using BONES for animation.
+	Details on how to created them in README.md.
+	
+	outline: outline size, for cartoon style models with a black outline.
+	psm: Color mode for loaded textures.(COLOR_4444/5551/5650/8888/T8,T4).
+	begin: first frame of animation.
+	end: final frame of animation. This should be a copy of the first for the animation to loop.
+	speed: animation speed.
+	loop: loop on 1/off 0.
+	smooth: smooth animation curve on 1/off 0.
+*/
 M3D_SkinnedActor *M3D_LoadSkinnedActor(const char *path, float outline, u32 psm);
 void M3D_SkinnedActorRender(M3D_SkinnedActor *actor);
+void M3D_SkinnedActorSetLighting(M3D_SkinnedActor *a, int light);
 void M3D_SkinnedActorConfig(M3D_SkinnedActor *act, int begin, int end, float speed, int loop, int smooth);
 void M3D_SkinnedActorSetPosition(M3D_SkinnedActor *act, float x, float y, float z);
 void M3D_SkinnedActorCopyPosition(M3D_SkinnedActor *m0,M3D_SkinnedActor *m1);
@@ -404,16 +424,20 @@ void M3D_SkinnedActorSetScale(M3D_SkinnedActor *act, float sx, float sy, float s
 void M3D_SkinnedActorTranslate(M3D_SkinnedActor *act, float dx, float dy, float dz);
 void M3D_SkinnedActorRotate(M3D_SkinnedActor *act, float rdx, float rdy, float rdz);
 M3D_SkinnedActor *M3D_SkinnedActorClone(M3D_SkinnedActor *actorc);
-void M3D_CameraFollowSkinnedActor(M3D_Camera *cam, M3D_SkinnedActor *act, float y, float max);
+void M3D_CameraFollowSkinnedActor(M3D_Camera *cam, M3D_SkinnedActor *act, float height_y, float max_distance);
 ScePspFVector3 M3D_SkinnedActorGetPos(M3D_SkinnedActor *actor);
 //void M3D_SkinnedActorSetOcclusion(M3D_SkinnedActor *act,int value);
 void M3D_SkinnedActorRenderMirror(M3D_SkinnedActor* act, u8 axis);
 void M3D_SkinnedActorUnload(M3D_SkinnedActor *a);
-void M3D_SkinnedActorSetLighting(M3D_SkinnedActor *a, int light);
 
-//MORPHING MODELS
+
+/*MORPHING MODELS
+	3D models using several shapes for animation
+	
+*/
 M3D_MorphingActor *M3D_LoadMorphingActor(const char *path, float outline, u32 psm);
 void M3D_MorphingActorRender(M3D_MorphingActor *actor);
+void M3D_MorphingActorSetLighting(M3D_MorphingActor *a, int light);
 void M3D_MorphingActorConfig(M3D_MorphingActor *act, int begin, int end, float speed, int smooth);
 void M3D_MorphingActorSetPosition(M3D_MorphingActor *act, float x, float y, float z);
 void M3D_MorphingActorCopyPosition(M3D_MorphingActor *m0,M3D_MorphingActor *m1);
@@ -423,23 +447,54 @@ void M3D_MorphingActorTranslate(M3D_MorphingActor *act, float dx, float dy, floa
 void M3D_MorphingActorRotate(M3D_MorphingActor *act, float rdx, float rdy, float rdz);
 ScePspFVector3 M3D_MorphingActorGetPosition(M3D_MorphingActor *act);
 void M3D_MorphingActorUnload(M3D_MorphingActor *a);
-void M3D_MorphingActorSetLighting(M3D_MorphingActor *a, int light);
 //void M3D_MorphingActorSetOcclusion(M3D_MorphingActor *act,int value);
 
-//NURBS SURFACE
+
+
+/*NURBS SURFACE
+	3D surface defined by points.
+	
+	size: size in units.
+	steps: number of points to use (total points will be points*points in a square).
+	mode: 0 = simple sinewave; 1 = circle sinewave; 2 = interference pattern (2 waves).
+	px0, py0: wave 0 start position.
+	px1, py1: wave 1 start position.
+	strengh: wave amplitude.
+	angle: position of the wave, change this to animate.
+	mapping_mode: texture mapping 0 UV; 1 reflection.
+	
+*/
 M3D_NurbsSurface *M3D_CreateNurbsSurface(const char *texpath, u32 psm, float size,int steps);
 void M3D_NurbsSurfaceSet(M3D_NurbsSurface *surface, u32 mode, float px0, float py0, float px1, float py1, float strengh, float angle);
 void M3D_NurbsSurfaceRender(M3D_NurbsSurface *surface);
-void M3D_NurbsSetMapping(M3D_NurbsSurface *surface, int mode);
-void M3D_NurbsDelete(M3D_NurbsSurface *surface);
+void M3D_NurbsSetMapping(M3D_NurbsSurface *surface, int mapping_mode);
 void M3D_NurbsSetPosition(M3D_NurbsSurface *surface,float x, float y, float z);
 void M3D_NurbsSetRotation(M3D_NurbsSurface *surface,float x, float y, float z);
 void M3D_NurbsSetScale(M3D_NurbsSurface *surface,float x, float y, float z);
 void M3D_NurbsTranslate(M3D_NurbsSurface *surface,float x, float y, float z);
 void M3D_NurbsRotate(M3D_NurbsSurface *surface,float x, float y, float z);
+void M3D_NurbsDelete(M3D_NurbsSurface *surface);
 
 
-//PARTICLES (from OPEN TRI)
+/*PARTICLES (from OPEN TRI)
+	2D particles in 3D world (allways facing the camera).
+	Before loading any particle, use M3D_ParticleSystemInit() to avoid crashes.
+	You can't delete single particle emitters, to reset the scene, use M3D_ParticleSystemUnload() and
+	then M3D_ParticleSystemInit() again.
+	
+	number: number of particles in the scene.
+	emitter_type:
+		M3D_PARTICLE_DEFAULT
+		M3D_PARTICLE_FLOATING: rain / dust / pollen / snow
+		M3D_PARTICLE_EXPLOSION
+		M3D_PARTICLE_SPRINKLE
+		M3D_PARTICLE_SMOKE
+	blend: 0 = no transparency; 1 = transparent.
+	emitter: number of particle.
+	hframes,vframes: horizontal and vertical frames for an animated texture
+	loops: animation loop.
+
+*/
 void M3D_ParticleSystemInit(int number);
 void M3D_LoadParticle(int number,const char *path, signed long emitter_type, int fast, int blend);
 void M3D_ParticleSetPosition(int emitter,float x, float y, float z);
@@ -452,15 +507,45 @@ void M3D_ParticlesRender(float speed );
 void M3D_ParticleStop(int emitter);
 void M3D_ParticleSystemUnload();
 
-//SHADOWS
+
+
+/*STENCYL SHADOWS
+
+	They use a cylinder to create a simple volumetric shadow. they only need the  shadow receiver to 
+	be drawn before using them.
+	
+	alpha: shadow transparency.
+	tyoe: 0 = simple, below model, no light processing. 
+	type: 1 = uses a light to move the shadow.
+	
+*/
 void M3D_ModelCastShadow(M3D_Model *c, int obj = 0, int alpha = 100, int type = 1, int light = 0);
 void M3D_SkinnedActorCastShadow(M3D_SkinnedActor *act, int alpha = 100, int type = 1, int light = 0);
+//void M3D_MorphingActorCastShadow(M3D_MorphingActor *act, int alpha = 100, int type = 1, int light = 0);
 
+
+/*PROJECTION SHADOWS
+
+	They use rendertarget functions to render a real shadow projection.
+	
+	- You first need M3D_ShadowprojectionSet to create the texture for the shadows.
+	- Then you have to use StartShadowReceiver to render the shadow receiver.
+	- Now you use RenderShadow functions to draw object shadows
+	- Finally use M3D_EndShadowReceiver().
+	
+	psize: shadow texture size (max 512 pixels).
+	size: size of the shadow texture on the 3D world
+	type: 1 = uses a light to move the shadow.
+	px,py,pz: shadow position in the 3D world.
+	alpha: transparency.
+	light: light to use for shadow projection.
+	
+	
+*/
 void M3D_ShadowprojectionSet(int psize,float size);
-
-void M3D_ModelStartShadowReceiver(M3D_Model *receiver, int objnumber, float x, float y, float z, u8 alpha, u8 light);
-void M3D_NurbsStartShadowReceiver(M3D_NurbsSurface *receiver, float x, float y, float z, u8 alpha, u8 light);
-void M3D_ModelBINStartShadowReceiver(M3D_ModelBIN *receiver, float x, float y, float z, u8 alpha, u8 light);
+void M3D_ModelStartShadowReceiver(M3D_Model *receiver, int obj_number, float px, float py, float pz, u8 alpha, u8 light);
+void M3D_NurbsStartShadowReceiver(M3D_NurbsSurface *receiver, float px, float py, float pz, u8 alpha, u8 light);
+void M3D_ModelBINStartShadowReceiver(M3D_ModelBIN *receiver, float px, float py, float pz, u8 alpha, u8 light);
 
 void M3D_ModelRenderShadow(M3D_Model *caster, int obj_number);
 void M3D_VehicleRenderShadow(M3D_Model *caster, int obj_number);
@@ -468,13 +553,46 @@ void M3D_SkinnedActorRenderShadow(M3D_SkinnedActor *act);
 void M3D_EndShadowReceiver();
 
 
-//TEXTURE PIXEL SHADER
-void M3D_ModelLoadNormalTexture(M3D_Model *m,int obj_number, int group,const char *path, u32 psm);
-void M3D_ModelSetNormalTexture(M3D_Model *m,int obj_number, int group, M3D_Camera *cam,int l);
+/*TEXTURE PIXEL SHADER
+	Only for M3D_Model struct
+	LoadNormalTexture:
+		Load a 16 or 256 color texture, containing the surface normals in the R G B components of the colors.
+		psm: COLOR_T4 or COLOR_T8.
+	SetNormalTexture:
+		Draws the normal texture on the object.
+		cam: camera you are using for render.
+		light: light to use for shading calculations.
+	
+*/
+void M3D_ModelLoadNormalTexture(M3D_Model *m,int obj_number, int group, const char *path, u32 psm);
+void M3D_ModelSetNormalTexture(M3D_Model *m,int obj_number, int group, M3D_Camera *cam,int light);
 
 
 
-//BULLET PHYSICS GENERAL
+/*BULLET PHYSICS ENGINE GENERAL
+	Bullet physics, first implemented by AndresMargar
+	
+	Init the engine with M3D_BulletInitPhysics first to avoid crashes.
+	Use M3D_BulletUpdatePhysics() inside your loop for the engine to work.
+	Delete all models physics before using M3D_BulletFinishPhysics().
+	
+	You can set a name for every material using M3D_MaterialSetName().  Material is either a 32 bit number,
+	or a 4 character string. You need material names to use M3D_ModelCheckCollision().
+	Function M3D_BulletRayTracingTest() returns the material name it finds.
+	M3D_MaterialSetName can be used in M3D_Model, M3D_SkinnedActor and M3D_MorphingActor.
+	
+	world_size: the physics world will be a cube of "world_size" in size (3D units).
+	max_objects: maximum number of physics objects.
+	mass: mass of the physics object.
+	shapetype: 
+		M3D_BULLET_SHAPE_NONE
+		M3D_BULLET_SHAPE_BOX
+		M3D_BULLET_SHAPE_SPHERE
+		M3D_BULLET_SHAPE_CONE
+		M3D_BULLET_SHAPE_CYLINDER
+		M3D_BULLET_SHAPE_CONVEXHULL
+	
+*/
 void M3D_BulletInitPhysics(int world_size, u32 max_objects);
 void M3D_BulletUpdatePhysics(void);
 void M3D_BulletFinishPhysics(void);
@@ -491,28 +609,90 @@ void M3D_ModelDeletePhysics(M3D_Model *model);
 void M3D_SkinnedActorDeletePhysics(M3D_SkinnedActor *actor);
 void M3D_MorphingActorDeletePhysics(M3D_MorphingActor *actor);
 void M3D_ModelBINDeletePhysics(M3D_ModelBIN *model);
-u32 M3D_ModelCheckCollision(M3D_Model *m,int obj_number,const void *name);
 
+u32 M3D_ModelCheckCollision(M3D_Model *m,int obj_number,const void *material_name);
+
+void M3D_ModelSetForce(M3D_Model *model, int obj_number, float x, float y, float z);
+
+char *M3D_BulletRayTracingTest(ScePspFVector3 *origin_position, ScePspFVector3 *ray_vector);//ray_ector relative to position
+
+
+/*BULLET PHYSICS ENGINE CONSTRAINTS
+	Constraints are points or lines which attach an object to the 3D world, or to another object.
+	Only for M3D_Model structs.
+	
+	ConstraintBall attaches an object to a world fixed point.
+	ConstraintHinge attaches an object to a world fixed line or himge.
+	ConstraintHinge2 attaches an object to another object using a line or himge.
+	
+	cons_number: constraint number, every object can use only 2 constraints (0,1).
+	pivotx,y,z: this is the point (or the middle point of the hinge) models are attached to.
+	axis: rotation axis of a hinge.
+	
+*/
 void M3D_ConstraintBall(M3D_Model *model, int obj_number, int cons_number, float pivotx, float pivoty, float pivotz);
+//void M3D_ConstraintBall2(M3D_Model *model1, int obj_number, M3D_Model *model2, int obj_number2, int cons_number, float pivotx, float pivoty, float pivotz);
 void M3D_ConstraintHinge(M3D_Model *model,int obj_number, int cons_number, float pivotx, float pivoty, float pivotz, int axis);
 void M3D_ConstraintHinge2(M3D_Model *model1,int obj_number1, M3D_Model *model2, int obj_number2, int cons_number, float pivotx, float pivoty, float pivotz, float pivot1x, float pivot1y, float pivot1z, int axis);
 void M3D_ConstraintsRemove(M3D_Model *model, int obj_number, int cons_number);
 
-void M3D_ModelSetForce(M3D_Model *model, int obj_number, float x, float y, float z);
-char *M3D_BulletRayTracingTest(ScePspFVector3 *pos, ScePspFVector3 *vec);
 
+/*BULLET PHYSICS CHARACTER FUNCTIONS
+	Only for M3D_SkinnedActor structs.
+	
+	CharacterMove and EnemyMove are simple functions to simulate 3D character movement.
+	
+	To use M3D_CharacterMove you must define character animations
+		int Sample_AnimIdle[] = {number_of_frames,frame0,frame1....};
+	
+		M3D_Player player;
+		player.Health = 8;
+		player.AnimIdle = Sample_AnimIdle;
+		player.AnimWalkSlow = Sample_AnimWalkSlow;
+		player.AnimWalkFast = Sample_AnimWalkFast;
+		player.AnimJump = Sample_AnimJump;
+		player.AnimDie = Sample_AnimDie;
+	
+	
+	bad_col: name of a material which will cause damage
+	item_slot: slot to store items.
+	item_col: name of an item material, it will increase item number. 
+	speed: max speed.
+	jump: jump formce.
+	
+*/
 void M3D_CharacterMove(M3D_SkinnedActor *act, M3D_Player *player,const void *bad_col,int item_slot,const void *item_col,float speed, float jump);
 void M3D_EnemyMove(M3D_SkinnedActor *act);
-void M3D_MaterialSetName(void *model, int object, const void *name);
+void M3D_MaterialSetName(void *model, int obj_number, const void *name);
 
 
-//BULLET PHYSICS VEHICLE
-void M3D_VehicleInitPhysics(M3D_Model *model, float mass, float wradius, float wwidth, float wfriction, float xd, float yd);
-void M3D_VehicleRender(M3D_Model *model,M3D_Model *wheel);
-void M3D_VehicleSetCam(M3D_Model *model, float y, float z, float rot);
-void M3D_VehicleMove(M3D_Model *model, float velocitator, float deceleratrix, float steering);
-void M3D_ModelSetMaxVelocity(M3D_Model *model, int obj_number, float vel);
-//void AMG_VehicleDeletePhysics(AMG_Skinned_Actor *actor)
+/*BULLET PHYSICS VEHICLE
+
+	Very simple BULLET Ray cast vehicle. Note this has bugs, wheels tend to get stuck, and then the 
+	whole car will fall through the ground.
+	
+	Vehicles are M3D_Model structs only, you need to load an M3D_Model for the car itself, and another 
+	for the wheels (only one wheel).
+	
+	wradius: wheel radius.
+	wwidth: wheel width.
+	wfriction: wheel friction.
+	xd: wheels/car x axis size.
+	yd: wheels/car y axis size.
+	y: cam height.
+	z: cam distance.
+	rot: camera rotation in z-y plane relative to car and camera. 
+		this will increase or decrease camera height.
+	velocitator: car acceleration force.
+	deceleratrix: car brake force.
+	steering: steering force.
+	
+*/
+void M3D_VehicleInitPhysics(M3D_Model *car_model, float mass, float wradius, float wwidth, float wfriction, float xd, float yd);
+void M3D_VehicleRender(M3D_Model *car_model,M3D_Model *wheel_model);
+void M3D_VehicleSetCam(M3D_Model *car_model, float y, float z, float rot);
+void M3D_VehicleMove(M3D_Model *car_model, float velocitator, float deceleratrix, float steering);
+void M3D_ModelSetMaxVelocity(M3D_Model *car_model, int obj_number, float max_vel);
 ScePspFVector3 M3D_VehicleGetPos(M3D_Model *model, int obj_number);
 
 
