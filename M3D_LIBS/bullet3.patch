@@ -1,0 +1,26 @@
+--- bullet3/CMakeLists.txt	2025-09-07 12:59:51.372374268 +0200
++++ bullet3/CMakeLists.txt	2025-09-06 12:55:38.194914655 +0200
+@@ -328,6 +328,7 @@
+ ENDIF()
+ 
+ OPTION(BUILD_BULLET3 "Set when you want to build Bullet 3" ON)
++OPTION(BUILD_BULLET3_OPENCL "Set when you want to build Bullet 3 with OpenCL" ON)
+ 
+ # Optional Python configuration
+ # Will not probe environment for Python configuration (which can abort the
+--- bullet3/src/CMakeLists.txt	2025-09-07 12:59:54.687826022 +0200
++++ bullet3/src/CMakeLists.txt	2025-09-06 12:49:30.081911925 +0200
+@@ -1,9 +1,11 @@
+ 
+ IF(BUILD_BULLET3)
+-	SUBDIRS(  Bullet3OpenCL Bullet3Serialize/Bullet2FileLoader Bullet3Dynamics Bullet3Collision Bullet3Geometry )
++	SUBDIRS(  Bullet3Serialize/Bullet2FileLoader Bullet3Dynamics Bullet3Collision Bullet3Geometry )
++	IF(BUILD_BULLET3_OPENCL)
++		add_subdirectory ( Bullet3OpenCL )
++	ENDIF(BUILD_BULLET3_OPENCL)
+ ENDIF(BUILD_BULLET3)
+ 
+-
+ SUBDIRS(   BulletInverseDynamics BulletSoftBody BulletCollision BulletDynamics LinearMath Bullet3Common)
+ 
+ 
