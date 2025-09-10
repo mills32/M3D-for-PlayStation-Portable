@@ -107,7 +107,7 @@ maps must be in CSV format.
 **<ins>3D IMAGE MIPMAPS:</ins>** If you enable mipmapping, you can use custom mipmaps by giving your main texture the name "image.png", the first mipmap "image_mip1.png" and the second mipmap "image_mip2.png". These three images must use the same color format, else PSP will crash.  
 **<ins>3D MODELS:</ins>** I use Blender 2.79 for 3D model creation, because 2.8+ works very slow on my PC. Blender 2.7 will run very well on any PC.  
 Supported models are:
-  - ply: The fist version, as it is exported by Blender 2.7.
+  - ply: The first version, as it is exported by Blender 2.7.
   - obj/mtl: Should have no problems with these.
   - m3b: Binary PSP models, in PSP's internal format. (Blender 2.7 export plugin included).
   
