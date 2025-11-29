@@ -20,7 +20,7 @@ cp -ar AMGLib/libAMG.a release/lib
 cp -ar bullet-2.82-r2704/src/libbulletpsp.a release/lib
 cp -ar oslibmodv2-master/libosl.a release/lib
 
-cd release/lib && ./join.sh && cd ../..
+cd release/lib && sh join.sh && cd ../..
 
 echo -n "Installing libs..."
 install -t $PSPSDKDIR/lib/ release/lib/libM3D.a && \

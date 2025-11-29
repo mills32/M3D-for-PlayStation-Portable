@@ -17,9 +17,8 @@ copy bullet-2.82-r2704\src\libbulletpsp.a release\lib
 copy oslibmodv2-master\libosl.a release\lib
 cd release\lib
 
-echo "Joining libs"
 rem crsT
-wsl ./join.sh
+wsl sh join.sh
 pause
 rem crsT libM3D.a libAMG.a libbulletpsp.a libosl.a
 

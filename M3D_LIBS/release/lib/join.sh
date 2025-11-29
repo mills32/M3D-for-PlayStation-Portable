@@ -1,5 +1,5 @@
-#! /bin/bash
-echo "Joining linbs"
+#!/bin/sh
+echo -n "Joining libs..."
 psp-ar ar -M <<EOM
     CREATE libM3D.a
 	ADDLIB libAMG.a
@@ -8,4 +8,5 @@ psp-ar ar -M <<EOM
     SAVE
     END
 EOM
-ranlib libM3D.a
+psp-ranlib libM3D.a || exit "Failure"
+echo "Successful!"

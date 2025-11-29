@@ -1,0 +1,6 @@
+[submodule "M3D_LIBS/oslib"]
+	path = M3D_LIBS/oslib
+	url = https://github.com/dogo/oslib
+[submodule "M3D_LIBS/bullet3"]
+	path = M3D_LIBS/bullet3
+	url = https://github.com/bulletphysics/bullet3
