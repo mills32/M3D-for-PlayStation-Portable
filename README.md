@@ -3,6 +3,8 @@
 ![screenshot](IMAGES/M3D.png)
 
 [BUG]: on Linux many samples will fail because I tested them on windows and I did not realiza Linux is case sensitive. 
+
+
 This is a "GAME ENGINE" for the PlayStation Portable, it is a wrapper around several libraries,
 which are combined in one, the relevant functions are exposed as "M3D" by including M3D.h.  
 Thanks to the creators of AMGLib (Andresmargar, who integrated bullet inside AMGLib), OSLib, openTRI and bullet. 
