@@ -2,7 +2,7 @@
   
 ![screenshot](IMAGES/M3D.png)
 
-[BUG]: on Linux many samples will fail because I tested them on windows and I did not realize Linux is case sensitive. 
+[BUG]: on PPSSPP Linux many samples will fail because I tested them on windows and I did not realize Linux is case sensitive. 
 
 
 This is a "GAME ENGINE" for the PlayStation Portable, it is a wrapper around several libraries,
