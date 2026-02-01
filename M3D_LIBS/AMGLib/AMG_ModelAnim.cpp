@@ -622,20 +622,22 @@ void AMG_RenderMorphingActor(AMG_Morphing_Actor *actor){
 		float sp = 1/actor->Object[0].speed;
 		//Be sure the model frame is inside the animation
 		if (actor->Object[0].frame < actor->Object[0].startFrame) actor->Object[0].frame = actor->Object[0].startFrame;
-		if (actor->Object[0].frame > actor->Object[0].endFrame) actor->Object[0].frame = actor->Object[0].startFrame;	
-		
+        if (actor->Object[0].frame > actor->Object[0].endFrame) actor->Object[0].frame = actor->Object[0].startFrame;
 		for (int i = 0; i < actor->Object[0].frameCount; i++) sceGuMorphWeight(i,0);
 		
 		sceGuMorphWeight(actor->Object[0].frame,actor->Object[0].fr);
 		if (actor->Object[0].frame < actor->Object[0].endFrame)
 			sceGuMorphWeight(actor->Object[0].frame+1,1-actor->Object[0].fr);
 		else sceGuMorphWeight(0,1-actor->Object[0].fr);
-		actor->Object[0].fr-=sp;
-		if (actor->Object[0].fr < 0) {
-			actor->Object[0].frame++;
-			actor->Object[0].fr = 1;
-		}
-		if (actor->Object[0].frame == 8) actor->Object[0].frame = 0;
+        if (!actor->Object[0].loop && actor->Object[0].frame == actor->Object[0].endFrame);//do nothing else
+        else {
+            actor->Object[0].fr-=sp;
+            if (actor->Object[0].fr < 0) {
+                actor->Object[0].frame++;
+                actor->Object[0].fr = 1;
+            }
+        }
+        if (actor->Object[0].frame == 8 && actor->Object[0].loop) actor->Object[0].frame = 0;
 	} else {
 		for (int i = 0; i < actor->Object[0].frameCount; i++) sceGuMorphWeight(i,0);
 		sceGuMorphWeight(actor->Object[0].startFrame,1);
@@ -671,19 +673,21 @@ void M3D_MorphingActorRender(M3D_MorphingActor *actor){
 	AMG_RenderMorphingActor((AMG_Morphing_Actor *)actor);
 }
 
-void AMG_ConfigMorphingActor(AMG_Morphing_Actor *actor, int begin, int end, float speed, int smooth){
+void AMG_ConfigMorphingActor(AMG_Morphing_Actor *actor, int begin, int end, float speed, int loop, int smooth){
 	actor->Object[0].speed = speed;
 	actor->smooth = smooth;
 	actor->Object[0].startFrame = begin;
 	actor->Object[0].endFrame = end;
+    actor->Object[0].loop = loop;
 }
 
-void M3D_MorphingActorConfig(M3D_MorphingActor *act, int begin, int end, float speed, int smooth){
+void M3D_MorphingActorConfig(M3D_MorphingActor *act, int begin, int end, float speed, int loop, int smooth){
 	AMG_Morphing_Actor *actor = (AMG_Morphing_Actor *)act;
 	actor->Object[0].speed = speed;
 	actor->smooth = smooth;
 	actor->Object[0].startFrame = begin;
 	actor->Object[0].endFrame = end;
+    actor->Object[0].loop = loop;
 }
 
 void M3D_MorphingActorSetPosition(M3D_MorphingActor *act, float x, float y, float z){

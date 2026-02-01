@@ -438,7 +438,7 @@ void M3D_SkinnedActorUnload(M3D_SkinnedActor *a);
 M3D_MorphingActor *M3D_LoadMorphingActor(const char *path, float outline, u32 psm);
 void M3D_MorphingActorRender(M3D_MorphingActor *actor);
 void M3D_MorphingActorSetLighting(M3D_MorphingActor *a, int light);
-void M3D_MorphingActorConfig(M3D_MorphingActor *act, int begin, int end, float speed, int smooth);
+void M3D_MorphingActorConfig(M3D_MorphingActor *act, int begin, int end, float speed, int loop, int smooth);
 void M3D_MorphingActorSetPosition(M3D_MorphingActor *act, float x, float y, float z);
 void M3D_MorphingActorCopyPosition(M3D_MorphingActor *m0,M3D_MorphingActor *m1);
 void M3D_MorphingActorSetRotation(M3D_MorphingActor *act, float rx, float ry, float rz);
