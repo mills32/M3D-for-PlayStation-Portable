@@ -28,7 +28,7 @@ int main(){
 	//Load morphing model
 	M3D_MorphingActor *Morph0 = M3D_LoadMorphingActor("Files/morph0.m3m",0.04,COLOR_4444);
 	M3D_MorphingActorSetLighting(Morph0,0);
-	M3D_MorphingActorConfig(Morph0, 0, 6, 130, 1);
+	M3D_MorphingActorConfig(Morph0, 0, 6, 130, 1, 1); // loop
 	
 	//Load skinned models
 	int Model = 0;
